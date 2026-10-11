@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 import realtimegym
+from pprint import pprint
 
 
 def convert_scalar(value):
@@ -36,7 +37,9 @@ def build_prompt(observation, tick_seconds):
     # x=0 is the player's column; y=0 is the start and y=9 is the goal
     # this snapshot won't update while the model generates its response
     return (
-        "Play Freeway. Choose one action: U (up), D (down), or S (stay). "
+        "Your goal is to get to y=9 by choosing one action: U (up), D (down), or S (stay). "
+        "While S is a valid action, you should try to go up at least once."
+        "You should not stay at y=0"
         "Reach y=9 from y=0 while avoiding cars in lanes y=1 through y=8. "
         "U increases player y by 1; D decreases it by 1; S leaves it unchanged. "
         "The player stays at x=0. player_states is player y. "
@@ -50,8 +53,8 @@ def build_prompt(observation, tick_seconds):
         "Score starts at 100 and falls by 1 each turn. "
         "The episode ends on reaching the goal or after 100 turns. "
         f"The game advances approximately every {tick_seconds} seconds, "
-        "using S while you generate your response. Your snapshot may be stale "
-        "when your action is applied. Return only U, D, or S.\n\n"
+        "Your snapshot may be stale when your action is applied."
+        "Return only U, D, or S.\n\n"
         "Observation:\n"
         + json.dumps(observation, default=convert_scalar)
     )
@@ -134,6 +137,7 @@ def main():
     def collect_response():
         # collect a completed response without changing the environment
         response, request_error, started, finished = pending.result()
+        # pprint(response)
         content = (response or {}).get("message", {}).get("content", "")
         action = content.strip().upper()
         complete = (response or {}).get("done_reason") == "stop"

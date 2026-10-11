@@ -15,3 +15,5 @@ logs/
 
 # ignore macOS folder metadata
 .DS_Store
+
+external
