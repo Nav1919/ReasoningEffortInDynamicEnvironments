@@ -11,7 +11,6 @@ from urllib.request import Request, urlopen
 import realtimegym
 from pprint import pprint
 
-
 def convert_scalar(value):
     # observations can contain NumPy scalars
     # turn those into regular Python values before saving or sending JSON
