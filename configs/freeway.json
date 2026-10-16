@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "environment": "RealtimeGym/Freeway",
+  "model_identifier": null,
+  "modes": {"quick": null, "deliberate": null},
+  "difficulties": {},
+  "pressures": {},
+  "older_view_seconds": null,
+  "starts": {"development": [], "held_out": []}
+}

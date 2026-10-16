@@ -10,7 +10,7 @@ Our research question is: **How should an LLM agent allocate reasoning effort wh
 
 ## How to Navigate this Repo
 
-The repository currently contains this README and the planning pages in `docs/`. Code, tests, and tutorial notebooks have **not** been added yet. 
+The repository contains planning pages and a standard-library offline Freeway data-validation skeleton. Simulator integration and tutorial notebooks are not yet available. 
 
 | Path | What it contains | Status |
 |---|---|---|
@@ -22,7 +22,10 @@ The repository currently contains this README and the planning pages in `docs/`.
 | `docs/final-report.md` | Final-report working outline | Available |
 | `docs/related-works.md` | Paper summaries and annotation links | Available |
 | `docs/weekly-tracker.md` | 11-week task plan, check-ins, and result log | Available |
-| Code, tests, and notebooks | Add paths and descriptions as they are created | Not yet available |
+| [src/freeway_schema.py](src/freeway_schema.py) | Validate manifest: `python3 -B src/freeway_schema.py configs/freeway.json`; [unit tests](tests/test_freeway_schema.py) | Offline only |
+| [tests/test_freeway_schema.py](tests/test_freeway_schema.py) | Synthetic contract tests: `python3 -B -m unittest discover -s tests -v` | Available |
+| [configs/freeway.json](configs/freeway.json) | Incomplete configuration and separate seed splits; no model selected | Draft |
+| [docs/offline-skeleton.md](docs/offline-skeleton.md) | Schema, usage, limitations, and human decisions/blockers | Available |
 
 @Team Members: When adding code, list **each runnable code file** here with its purpose, usage, and unit-test link. Keep notebook entries here too, including prerequisites and the order in which to run them.
 
