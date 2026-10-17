@@ -1,3 +1,10 @@
+"""Run one asynchronous Freeway episode using local Ollama.
+
+Usage: python run_model_freeway.py --help (defaults: original/full, thinking off).
+Inputs: CLI settings and live observations. Output: timestamped logs/*.json.
+Checks: test_model_freeway.py, test_freeway_study.py, test_reproducibility.py;
+saved episodes are also verified by replay_freeway.py. See README.md.
+"""
 # imports
 import argparse
 import copy
@@ -31,11 +38,27 @@ def post_json(endpoint, payload):
         return json.loads(response.read().decode("utf-8"))
 
 
-def build_prompt(observation, tick_seconds):
+def build_prompt(observation, tick_seconds, strategy="original", board="full"):
     # explain the structured state using the benchmark's coordinate system
     # x=0 is the player's column; y=0 is the start and y=9 is the goal
     # this snapshot won't update while the model generates its response
-    return (
+    # Keep the original wording available for exact comparisons.
+    # Removing the board is independent of changing the instructions.
+    observation = copy.deepcopy(observation)
+    if board == "structured":
+        observation.pop("state_string", None)
+    progress = ""
+    if strategy in {"progress", "progress_source"}:
+        # Encourage the objective without choosing an action for the model.
+        # Staying is still allowed when it helps avoid an imminent collision.
+        progress = (
+            "Your objective is to CROSS, not to survive at the starting line. "
+            "Staying forever loses at turn 100. Make upward progress when possible; "
+            "use S or D when traffic makes that useful. S is not automatically safe "
+            "in a traffic lane. Choose for the next action opportunity despite "
+            "uncertainty; do not wait forever for a perfectly certain crossing.\n"
+        )
+    prompt = progress + (
         "Play Freeway. Choose one action: U (up), D (down), or S (stay). "
         "Reach y=9 from y=0 while avoiding cars in lanes y=1 through y=8. "
         "U increases player y by 1; D decreases it by 1; S leaves it unchanged. "
@@ -55,6 +78,33 @@ def build_prompt(observation, tick_seconds):
         "Observation:\n"
         + json.dumps(observation, default=convert_scalar)
     )
+    if strategy == "progress_source":
+        # This separately named variant corrects the simplified mechanics.
+        # The existing original/progress variants remain exactly as before.
+        # It is available for later work, not substituted into the matched study.
+        prompt = prompt.replace(
+            "Speed is the positive distance moved per turn. ",
+            "Speed is the nominal positive distance per turn in the structured "
+            "encoding. Actual car heads move on integer board cells: slow cars "
+            "use timers, and their structured head positions include timer phase. "
+        ).replace(
+            "Cars wrap around the board. ",
+            "A car whose integer head was already outside the nine board columns "
+            "at the start of a turn is placed at the opposite edge that turn "
+            "without an additional move. Otherwise its timer or speed advances "
+            "it. This is not ordinary modulo wrapping. Collisions check the "
+            "updated occupied integer cells, not the swept path between cells. "
+        ).replace(
+            "The player moves before cars move and collisions are checked. ",
+            "The player moves first. Reaching y=9 ends immediately before cars "
+            "move; otherwise cars move and collisions are checked. "
+        ).replace(
+            "A collision resets the player and traffic to their starting layout. ",
+            "A collision sends the player to y=0. If the episode has not ended, "
+            "traffic also resets to its seeded starting layout; elapsed turns "
+            "and score are preserved. "
+        )
+    return prompt
 
 
 def request_action(payload, probe_delay):
@@ -79,15 +129,45 @@ def request_action(payload, probe_delay):
     return response, error, started, finished
 
 
+def parse_action(response, error=None):
+    # Accept only a completed response containing one action, ignoring case
+    # and surrounding whitespace. Never extract actions from prose or thinking.
+    content = (response or {}).get("message", {}).get("content", "")
+    action = content.strip().upper()
+    valid = (error is None and (response or {}).get("done_reason") == "stop"
+             and action in {"U", "D", "S"})
+    return action if valid else None
+
+
+def build_request(observation, args):
+    # Share exactly the same request settings between diagnostics and pilots.
+    return {
+        "model": args.model,
+        "messages": [{"role": "user", "content": build_prompt(
+            observation, args.tick_seconds, args.prompt, args.board)}],
+        "think": args.thinking == "on", "stream": False, "keep_alive": "5m",
+        "options": {"temperature": 0.6, "seed": getattr(args, "model_seed", 0),
+                    "num_predict": 2048, "num_ctx": 4096},
+    }
+
+
 def main():
     # command-line options let us change modes without editing the file
     parser = argparse.ArgumentParser()
     parser.add_argument("--thinking", choices=["off", "on"], default="off")
     parser.add_argument("--tick-seconds", type=float, default=1.0)
     parser.add_argument("--seed", type=int, choices=range(8), default=0)
+    parser.add_argument("--model-seed", type=int, default=0)
     parser.add_argument("--model", default="qwen3:4b-q4_K_M")
     parser.add_argument("--probe-delay", type=float, default=None)
+    parser.add_argument("--prompt", choices=["original", "progress", "progress_source"], default="original")
+    parser.add_argument("--board", choices=["full", "structured"], default="full")
+    # A study can choose the output name without parsing console messages.
+    # Refuse an existing file so a rerun cannot overwrite earlier evidence.
+    parser.add_argument("--log-path", default=None)
     args = parser.parse_args()
+    if args.log_path and Path(args.log_path).exists():
+        parser.error("log path already exists; choose a new filename")
     if args.tick_seconds <= 0 or (
         args.probe_delay is not None and args.probe_delay < 0
     ):
@@ -100,18 +180,33 @@ def main():
     if args.probe_delay is None:
         model_metadata = post_json("show", {"model": args.model})
 
+    # Warm up before the clock starts and preserve this request separately.
+    # Warm-up latency is never included in episode decision latency.
+    warmup = None
+    if args.probe_delay is None:
+        payload = {"model": args.model, "messages": [{"role": "user",
+                   "content": "Return only S."}], "think": False,
+                   "stream": False, "keep_alive": "5m"}
+        response, warm_error, start, finish = request_action(payload, None)
+        warmup = {"request": payload, "response": response, "error": warm_error,
+                  "latency_seconds": finish - start}
+
     env, real_seed, _ = realtimegym.make("Freeway-v0", seed=args.seed, render=False)
     observation, done = env.reset()
     log_directory = Path(__file__).resolve().parent / "logs"
     log_directory.mkdir(exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     log_path = log_directory / f"model_freeway_{timestamp}.json"
+    if args.log_path:
+        log_path = Path(args.log_path).resolve()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
     episode = {
         "environment": "Freeway-v0",
         "requested_seed": args.seed,
         "real_seed": int(real_seed),
         "settings": vars(args),
         "model_metadata": model_metadata,
+        "warmup": warmup,
         "policy": "delayed_scripted_probe" if args.probe_delay is not None else "ollama",
         "timing_mode": "wall_clock_with_worker_inference",
         "default_action": "S",
@@ -134,10 +229,8 @@ def main():
     def collect_response():
         # collect a completed response without changing the environment
         response, request_error, started, finished = pending.result()
-        content = (response or {}).get("message", {}).get("content", "")
-        action = content.strip().upper()
-        complete = (response or {}).get("done_reason") == "stop"
-        valid = request_error is None and complete and action in {"U", "D", "S"}
+        parsed = parse_action(response, request_error)
+        valid = parsed is not None
         decision.update({
             "response": response,
             "error": request_error,
@@ -155,7 +248,11 @@ def main():
                 for step in episode["steps"]
             ),
             "valid_action": valid,
-            "parsed_action": action if valid else "S",
+            "parsed_action": parsed,
+            "fallback_action": None if valid else "S",
+            "completion_reason": (response or {}).get("done_reason"),
+            "output_tokens": (response or {}).get("eval_count"),
+            "input_tokens": (response or {}).get("prompt_eval_count"),
         })
 
         # reject prose, invalid actions, and truncated responses
@@ -172,27 +269,14 @@ def main():
             if pending is None and ready is None:
                 # freeze a copy of the state the model actually receives
                 # later turns won't silently change this saved observation
+                observed_seconds = time.perf_counter() - started_episode
                 snapshot = copy.deepcopy(observation)
-                payload = {
-                    "model": args.model,
-                    "messages": [{
-                        "role": "user",
-                        "content": build_prompt(snapshot, args.tick_seconds),
-                    }],
-                    "think": args.thinking == "on",
-                    "stream": False,
-                    "keep_alive": "5m",
-                    "options": {
-                        "temperature": 0.6,
-                        "seed": 0,
-                        "num_predict": 2048,
-                        "num_ctx": 4096,
-                    },
-                }
+                payload = build_request(snapshot, args)
                 decision = {
                     "id": len(episode["decisions"]),
                     "observed_turn": int(env.game_turn),
                     "observation": snapshot,
+                    "observed_seconds": observed_seconds,
                     "request": payload,
                     "submitted_seconds": time.perf_counter() - started_episode,
                 }
@@ -208,8 +292,11 @@ def main():
             if now >= next_tick:
                 # S is the waiting action even after a previous U or D
                 # don't keep repeating the last model action during inference
-                action = ready["parsed_action"] if ready is not None else "S"
-                source = "model" if ready is not None else "waiting_default"
+                action = "S"
+                source = "waiting_default"
+                if ready is not None:
+                    action = ready["parsed_action"] or ready["fallback_action"]
+                    source = "model" if ready["valid_action"] else "invalid_fallback"
                 if args.probe_delay is not None and ready is not None:
                     source = "probe"
                 if ready is not None:
@@ -218,6 +305,13 @@ def main():
                     ready["observation_age_turns"] = (
                         int(env.game_turn) - ready["observed_turn"]
                     )
+                    # Seconds include the wait for tick alignment after a response
+                    # is ready. Turn age excludes the action's own environment step.
+                    ready["applied_seconds"] = now - started_episode
+                    ready["observation_age_seconds"] = (
+                        ready["applied_seconds"] - ready["observed_seconds"]
+                    )
+                    ready["executed_action"] = action
                     ready["status"] = "applied"
 
                 before = copy.deepcopy(observation)
@@ -273,6 +367,10 @@ def main():
             "collisions": collisions,
             "final_score": float(env.reward),
             "success": reached_goal,
+            # Terminal observations are empty, so count the goal transition too.
+            "maximum_position": max([9 if reached_goal else 0] + [
+                int(step["observation_after"].get("state", {}).get("player_states", 0))
+                for step in episode["steps"]]),
             "elapsed_seconds": time.perf_counter() - started_episode,
             "error": error,
         }
