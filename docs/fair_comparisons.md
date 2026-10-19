@@ -32,3 +32,12 @@ is marginal until measured. No download, upgrade, API substitution or pilot call
 were performed. Native-model selection and the 18-request pilot remain blocked
 on a resource decision. Offline implementation continues without pretending
 Qwen off/on supplies native Low/Medium/High results.
+
+## Explicit recipes
+
+`python experiment_config.py configs/qwen_boolean.json --ready` validates the
+existing-model recipe offline. `configs/native_effort_draft.json` is a separate
+native design with a null expected digest; `--ready` rejects it until model
+selection is resolved. No historical records are assigned these new recipes.
+Both use one shared validator and will feed the existing request/study functions.
+All effective scientific settings are explicit; unsupported options are rejected.
