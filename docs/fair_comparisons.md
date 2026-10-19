@@ -200,3 +200,15 @@ Later run logs reference the first preload. Schema-1 Qwen recipes retain their
 historical per-run warm-up questions and their original comparison IDs.
 The inspected Ollama 0.35.1 `server/routes.go` returns `done_reason: load` before
 text generation when the prompt is empty; an unexpected load response stops setup.
+
+## Downloaded native candidate — October 19
+
+With user approval, `gpt-oss:20b` was downloaded (13,793,441,566 bytes).
+Ollama 0.35.1 reports architecture/family **`gpt-oss`**, MXFP4, 20.9B parameters,
+and `thinking.values: [low, medium, high]`. The provisional profile's `gptoss`
+spelling was rejected before inference and corrected from that actual metadata.
+`configs/gptoss_native_pilot.json` pins the installed digest
+`f38aa0c53da5f8c49d08c43a99df24ff53167fe68e24664a7777288e7656fdfe`.
+It uses the one-load policy, identical full-board instructions and common
+2048-token/4096-context settings. This establishes identity/control compatibility;
+runtime feasibility and main-comparison model selection await the measured pilot.

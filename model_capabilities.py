@@ -10,7 +10,7 @@ from reasoning_modes import thinking_value
 EVIDENCE = 'https://github.com/ollama/ollama/blob/v0.35.1/docs/capabilities/thinking.mdx'
 PROFILES = {
     'qwen3-boolean-v1': {'family': 'qwen3', 'values': [False, True]},
-    'gpt-oss-effort-v1': {'family': 'gptoss', 'values': ['low', 'medium', 'high']},
+    'gpt-oss-effort-v1': {'family': 'gpt-oss', 'values': ['low', 'medium', 'high']},
 }
 OPTIONS = {'num_predict', 'num_ctx', 'temperature', 'seed'}
 

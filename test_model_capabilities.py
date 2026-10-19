@@ -15,7 +15,7 @@ class CapabilityTests(unittest.TestCase):
             validate_modes('gpt-oss-effort-v1', {'oops':{'control':'effort','value':'max'}})
 
     def test_family_and_advertised_values(self):
-        metadata = {'details':{'family':'gptoss'}, 'thinking':{'values':['low','medium','high']}}
+        metadata = {'details':{'family':'gpt-oss'}, 'thinking':{'values':['low','medium','high']}}
         original = copy.deepcopy(metadata)
         result = verify_capabilities('gpt-oss-effort-v1', modes_for('effort'), metadata, 'future')
         self.assertEqual(result['source'], 'installed_server_metadata')
