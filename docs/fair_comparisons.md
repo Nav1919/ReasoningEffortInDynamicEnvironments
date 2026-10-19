@@ -119,7 +119,7 @@ replacing evidence. Retry attempts must use new explicit attempt/run identifiers
 
 ## Existing live runner, saved settings
 
-`python run_model_freeway.py --experiment-config configs/qwen_boolean.json --mode off --seed 0 --tick-seconds 1`
+`python run_model_freeway.py --experiment-config configs/qwen_live.json --mode off --seed 0 --tick-seconds 1`
 uses the existing traffic/inference loop, but performs recorded setup first and
 saves the resolved recipe, both IDs, source/model/start evidence and detailed
 response records in the episode. On uses the same command with `--mode on`.
@@ -139,3 +139,6 @@ rendered requests, actual starts, conditions and replicate/attempt IDs are saved
 Qwen's separate recipe makes its own plan. The design itself enters comparison
 identity. Live plans cover development starts only; new retries require `--attempt 2`
 and a new output directory. Existing plans cannot be overwritten.
+
+`configs/qwen_live.json` is the separate live-game recipe. The runner rejects
+a frozen-pilot recipe for live gameplay so the saved design cannot be mislabeled.

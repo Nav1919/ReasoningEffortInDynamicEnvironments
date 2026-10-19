@@ -217,6 +217,8 @@ def main():
         if any(arg.split('=')[0] in forbidden for arg in sys.argv[1:]):
             parser.error('Recipe controls model/prompt/generation settings; do not override them')
         config = load_config(args.experiment_config)
+        if config['design'] != 'live-starts-v1':
+            parser.error('Live gameplay requires a live-starts-v1 recipe')
         resolved = resolve_run(config, args.mode, args.tick_seconds, args.seed, args.replicate)
         log = Path(args.log_path) if args.log_path else Path(__file__).parent/'logs'/(
             'controlled_' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '.json')

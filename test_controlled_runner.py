@@ -34,7 +34,7 @@ class ControlledRunnerTests(unittest.TestCase):
                 # Every game action is invalid: it must remain fallback, not model S.
                 return {'message':{'content':'prose'},'done_reason':'stop'}, None, 0, .1
             clock = itertools.count(step=.1)
-            argv = ['runner','--experiment-config',str(ROOT/'configs/qwen_boolean.json'),
+            argv = ['runner','--experiment-config',str(ROOT/'configs/qwen_live.json'),
                     '--mode','off','--log-path',str(path)]
             with patch('sys.argv',argv), patch('run_records.setup_run',side_effect=fake_setup), \
                  patch.object(runner,'request_action',side_effect=request), \
@@ -60,7 +60,7 @@ class ControlledRunnerTests(unittest.TestCase):
                 return setup(path,resolved,source_check=lambda c:{},model_check=lambda c:{'metadata':{}})
             results = [({'message':{'content':'S'},'done_reason':'stop'},None,0,.1),
                        (None,'TimeoutError: timed out',0,.1)]
-            argv = ['runner','--experiment-config',str(ROOT/'configs/qwen_boolean.json'),
+            argv = ['runner','--experiment-config',str(ROOT/'configs/qwen_live.json'),
                     '--mode','off','--log-path',str(path)]
             with patch('sys.argv',argv), patch('run_records.setup_run',side_effect=fake_setup), \
                  patch.object(runner,'request_action',side_effect=results) as requests, \
