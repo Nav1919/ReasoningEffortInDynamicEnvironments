@@ -152,3 +152,14 @@ a live game. It saves latency, raw answer, token availability, immediate safety
 and the category's relevant choice. Waiting-useful means a first action compatible
 with the saved short safe-progress sequence, not proof the model completes it.
 Invalid answers remain invalid; there is no executed fallback in this diagnostic.
+
+## Execute only the saved plan
+
+`python freeway_study.py execute --output logs/native_plan_01 --limit 1`
+checks the saved plan before making calls, creates an execution manifest, and
+attempts at most one run. Frozen runs use the existing helpers; live runs invoke
+the existing runner with the saved recipe. Every future/unrun entry stays
+`planned`. Setup failures and timeouts stop further requests. A client timeout
+does not prove server computation stopped: verify Ollama is idle before retrying.
+Existing execution files are rejected; create a new plan/folder with a new attempt
+ID to retry. `--limit 18` is the explicit full native pilot, currently blocked.

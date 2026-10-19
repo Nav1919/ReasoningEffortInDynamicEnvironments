@@ -490,14 +490,21 @@ def summarize(folder):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['build','smoke','diagnostics','live','all','summarize','plan'])
+    parser.add_argument('mode', choices=['build','smoke','diagnostics','live','all','summarize','plan','execute'])
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--config', type=Path)
+    parser.add_argument('--limit', type=int, default=1)
     parser.add_argument('--attempt', type=int, default=1)
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
     folder = args.output.resolve()
     folder.mkdir(parents=True, exist_ok=True)
+    if args.mode == 'execute':
+        from comparison_execution import execute_plan
+        if args.dry_run:
+            parser.error('Use plan --dry-run before execution')
+        execute_plan(folder, args.limit)
+        return
     if args.mode == 'plan':
         from comparison_plan import build_plan
         from experiment_config import load_config
