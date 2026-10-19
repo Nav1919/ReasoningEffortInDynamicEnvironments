@@ -141,7 +141,11 @@ def request_action(payload, probe_delay):
 def parse_action(response, error=None):
     # Accept only a completed response containing one action, ignoring case
     # and surrounding whitespace. Never extract actions from prose or thinking.
-    content = (response or {}).get("message", {}).get("content", "")
+    if not isinstance(response, dict) or not isinstance(response.get("message"), dict):
+        return None
+    content = response['message'].get('content')
+    if not isinstance(content, str):
+        return None
     action = content.strip().upper()
     valid = (error is None and (response or {}).get("done_reason") == "stop"
              and action in {"U", "D", "S"})

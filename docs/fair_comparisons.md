@@ -98,3 +98,13 @@ and complete initial-state fingerprint, including hidden timers/RNG. Selectors
 are reserved evaluation starts, with just three available starts—a real limit.
 Duplicate actual seeds **or** initial layouts are rejected across the entire split.
 Environment selectors, model sampling seed and scheduling seed remain separate.
+
+## Response records
+
+A valid model `S` is distinct from a waiting step and invalid-response fallback S.
+`decision_record` separately records request status, received/absent response,
+action validity, action application, and measurement availability. For example,
+`eval_count: 0` stays zero; an absent count becomes null with an explanation and
+does not invalidate a good U/D/S answer. `eval_count` is output, not reasoning tokens.
+Timeouts, request errors, malformed responses, invalid actions, truncations and
+late/discarded responses remain explicit. Raw provider responses are preserved.
