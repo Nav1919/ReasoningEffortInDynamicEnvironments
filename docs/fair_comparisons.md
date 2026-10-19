@@ -41,3 +41,19 @@ native design with a null expected digest; `--ready` rejects it until model
 selection is resolved. No historical records are assigned these new recipes.
 Both use one shared validator and will feed the existing request/study functions.
 All effective scientific settings are explicit; unsupported options are rejected.
+
+## Matching instructions
+
+`build_comparison_request` extends the existing runner's request construction;
+for a matching observation/interval its requests differ only in `think`.
+Qwen changes false/true; native effort changes low/medium/high. Tests compare
+entire requests, not just their labels. Provider-internal formatting may differ.
+`prompt_record` saves the exact instruction prefix and SHA256 per condition.
+
+The pinned simulator's step/state-builder source was inspected: player moves
+before traffic, goal ends immediately, collisions check updated integer cells,
+wrapping is delayed, and nonterminal collisions reset traffic. Existing
+`progress_source` describes those mechanics correctly, but omitted edge clamps.
+New `progress_source_v2` adds only that clarification. Original/progress and the
+historical source-corrected template remain unchanged. Frozen diagnostics keep
+these same user instructions; their asynchronous wording limits interpretation.

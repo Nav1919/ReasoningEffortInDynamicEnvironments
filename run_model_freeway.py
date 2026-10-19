@@ -17,6 +17,8 @@ from urllib.request import Request, urlopen
 
 import realtimegym
 from reasoning_modes import QWEN_MODES, thinking_value
+from experiment_config import validate_config
+import hashlib
 
 
 def convert_scalar(value):
@@ -40,6 +42,12 @@ def post_json(endpoint, payload):
 
 
 def build_prompt(observation, tick_seconds, strategy="original", board="full"):
+    if strategy == "progress_source_v2":
+        # Keep historical templates byte-identical; version the edge-clamp clarification.
+        return build_prompt(observation, tick_seconds, "progress_source", board).replace(
+            "U increases player y by 1; D decreases it by 1; S leaves it unchanged. ",
+            "U increases player y by 1; D decreases it by 1; both clamp at the "
+            "start/goal edges. S leaves it unchanged. ")
     # explain the structured state using the benchmark's coordinate system
     # x=0 is the player's column; y=0 is the start and y=9 is the goal
     # this snapshot won't update while the model generates its response
@@ -138,6 +146,28 @@ def parse_action(response, error=None):
     valid = (error is None and (response or {}).get("done_reason") == "stop"
              and action in {"U", "D", "S"})
     return action if valid else None
+
+
+def prompt_record(config, tick_seconds):
+    """Record the exact instruction prefix and a fingerprint, excluding observation."""
+    prompt = config['prompt']
+    template = build_prompt({}, tick_seconds, prompt['variant'], prompt['board'])
+    instructions = template.rsplit('Observation:\n', 1)[0] + 'Observation:\n'
+    return dict(**prompt, instruction_template=instructions,
+                template_sha256=hashlib.sha256(instructions.encode()).hexdigest())
+
+
+def build_comparison_request(observation, config, mode, tick_seconds):
+    """Build a controlled request; mode may change only Ollama's think field."""
+    config = validate_config(config)
+    if mode not in config['modes'] or tick_seconds not in config['tick_intervals']:
+        raise ValueError('Mode/condition is outside the recorded design')
+    prompt = config['prompt']
+    return dict(model=config['model']['tag'],
+        messages=[{'role':'user', 'content':build_prompt(observation, tick_seconds,
+                  prompt['variant'], prompt['board'])}],
+        think=thinking_value(config['modes'][mode]), stream=False, keep_alive='5m',
+        options=copy.deepcopy(config['generation']))
 
 
 def build_request(observation, args):
