@@ -68,3 +68,12 @@ selects the mode. Canonical JSON makes dictionary order irrelevant; paths and
 clock times are never inputs. A different token ceiling or mode set changes the
 comparison ID. Same-comparison runs still need matching actual start, condition
 and replicate before they can be paired. Reserved starts cannot be executed here.
+
+## Check the installed model without generating text
+
+`python model_provenance.py configs/qwen_boolean.json` reads local Ollama
+version, inventory and model metadata. It requires the exact tag **and digest**,
+checks the actual family/controls, and returns the template and capability evidence.
+Mismatch, absence or unresolved digest stops setup. It never pulls a model.
+All requests use the recipe timeout. Ollama tags are mutable; do not replace
+weights during a run. Metadata validates setup, not action quality.

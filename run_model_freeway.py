@@ -29,7 +29,7 @@ def convert_scalar(value):
     raise TypeError(f"Cannot serialize {type(value).__name__}")
 
 
-def post_json(endpoint, payload):
+def post_json(endpoint, payload, timeout=180):
     # send a request to the Ollama server running on our own computer
     request = Request(
         f"http://localhost:11434/api/{endpoint}",
@@ -37,7 +37,7 @@ def post_json(endpoint, payload):
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urlopen(request, timeout=180) as response:
+    with urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
