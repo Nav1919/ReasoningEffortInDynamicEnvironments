@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from comparison_execution import checked_plan
 from experiment_identity import fingerprint
+from run_model_freeway import build_comparison_request
 
 
 def comparison_summary(folder):
@@ -28,6 +29,13 @@ def comparison_summary(folder):
         if record:
             if fingerprint(record['resolved']) != fingerprint(entry['resolved']):
                 raise ValueError('Run settings are incompatible with the saved comparison')
+            if record.get('start') != entry['start']:
+                raise ValueError('Recorded actual start is incompatible with planned start')
+            for decision in record.get('decisions', []):
+                observation = decision.get('observation', entry['situation']['observation'])
+                expected = build_comparison_request(observation,plan['config'],mode,entry['resolved']['tick_seconds'])
+                if fingerprint(decision['request']) != fingerprint(expected):
+                    raise ValueError('Recorded request is incompatible with recipe')
             if record['run_status'] == 'complete':
                 model = record['provenance']['model']
                 source = record['provenance']['source']

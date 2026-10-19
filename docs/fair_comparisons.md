@@ -171,3 +171,13 @@ and runnable source fingerprints. Pairing uses comparison ID + actual initial
 start + situation observation + interval + replicate + attempt, never the selector
 alone. Each mode keeps its status; an unrun/failed partner is named explicitly.
 A folder of historical Qwen records cannot be pooled into this comparison.
+
+## Rebuild the new summaries offline
+
+`python freeway_study.py summarize --output logs/native_plan_01` writes
+`comparison_summary.json` and `comparison_modes.csv` without model calls.
+It includes every planned status, mode/config IDs, missing partners, attempted
+request and valid-answer counts, immediate safety/relevant-choice numerators and
+denominators, latency, and token availability. Empty measurements stay null;
+measured zero remains zero. Frozen diagnostics never count as game crossings.
+Warm-ups are excluded. Existing historical summary/replay commands still work.

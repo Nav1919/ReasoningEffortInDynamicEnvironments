@@ -522,7 +522,11 @@ def main():
         write_json(folder/'situations.json', build_situations())
         return
     if args.mode == 'summarize':
-        summarize(folder)
+        if (folder/'plan.json').exists():
+            from comparison_metrics import write_comparison_summary
+            write_comparison_summary(folder)
+        else:
+            summarize(folder)
         return
     if not (folder/'metadata.json').exists():
         capture_metadata(folder)
