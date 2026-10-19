@@ -1,0 +1,7 @@
+attempt,mode,planned,setup_failed,failed,unrun,questions,valid,median_request_seconds
+attempt1,low,6,1,0,5,0,0,
+attempt1,medium,6,0,0,6,0,0,
+attempt1,high,6,0,0,6,0,0,
+attempt2,low,6,0,1,5,1,0,180.1332507499028
+attempt2,medium,6,0,0,6,0,0,
+attempt2,high,6,0,0,6,0,0,

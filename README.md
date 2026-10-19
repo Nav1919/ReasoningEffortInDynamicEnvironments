@@ -30,7 +30,8 @@ See [setup](docs/freeway_setup.md) and [interface](docs/freeway_interface.md).
 For new research runs, follow the [short Step 2 guide](docs/step2_handoff.md).
 It saves settings and planned comparisons before model calls, records failures,
 and reports missing partners. Existing Qwen off/on stays separate from native
-Low/Medium/High. The native pilot is prepared offline but awaiting model selection.
+Low/Medium/High. GPT-OSS is installed, but local pilot attempts timed out before
+usable answers; the main-model decision remains open.
 See the guide for commands, PR review order and the resource decision.
 
 ## Start offline

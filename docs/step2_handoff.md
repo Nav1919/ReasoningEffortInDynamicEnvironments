@@ -3,7 +3,8 @@
 We now save the settings and planned game situations before asking a model.
 For the same situation, each mode gets identical user instructions; only its
 thinking control changes. Every attempt keeps its answer, failures and measurements.
-The native model is **not selected yet**, and no native pilot results exist.
+GPT-OSS is now downloaded and its controls verified, but local attempts timed
+out before any usable answer. Main-comparison model selection remains unresolved.
 
 ## Try it offline
 
@@ -50,27 +51,30 @@ saved moves, not fresh inference. Historical replay remains:
 python replay_freeway.py evidence/freeway_20261008/live_01_seed0_tick2.json.gz
 ```
 
-## Native pilot: waiting for a resource decision
+## Native pilot: local attempts and next decision
 
 The offline native recipe uses six development situations × three levels, rotated
 order, full-board versioned instructions and a shared 2048-token ceiling. It cannot
 execute until an exact installed model digest is chosen and passes compatibility.
 No evaluation games were played; selectors 5–7 remain reserved.
 
-Local option: authorize `ollama pull gpt-oss:20b`, about **14 GB** of weights.
-This Mac has 16 GiB RAM and about 72 GiB disk free, so runtime memory/latency need
-checking; success without swapping is not guaranteed. No upgrade is currently
-indicated by the inspected Ollama 0.35.1 control support. [Model listing](https://ollama.com/library/gpt-oss:20b).
+The authorized GPT-OSS 20B download is complete. On this Apple M3 / 16 GiB Mac,
+the first load timed out at 180.081 seconds. A separate longer-load retry loaded
+in 109.450 seconds, but its first Low answer timed out at 180.133 seconds.
+No Medium/High questions ran, and there are no usable native-model answers.
+Both attempts and offline reproduction commands are in the
+[saved local evidence](../evidence/gptoss_local_pilot_20261019/README.md).
+The model was unloaded; the downloaded weights remain installed.
 
-If local execution proves impractical, proposed API alternative:
+The proposed API alternative, requiring user approval, is:
 `gpt-5.4-mini-2026-03-17`, with a **$1 total spending cap**, no tools or automatic
 retries. Its [official model documentation](https://developers.openai.com/api/docs/models/gpt-5.4-mini)
 lists Low/Medium/High support and that snapshot. No API adapter, API call or
 provider substitution has been made; implementing one requires the user's choice.
 
-After an authorized model selection, save its digest in a new native recipe,
-validate `--ready`, generate a new plan, and execute with `--limit 18` for the
-approved small pilot. Summarize without new calls afterward. A timeout stops
+After authorizing and verifying a practical model/provider, save its exact
+identity in a new recipe and generate a new plan. Existing local attempts must
+not be overwritten. The API path is not implemented or authorized yet. Summarize without new calls afterward. A timeout stops
 further requests; check the server is idle before making a new attempt/folder.
 
 ## Files to read
@@ -110,6 +114,9 @@ PR #9 is still the unmerged foundation. No teammate approval or merge is implied
 | [#24](https://github.com/Nav1919/ReasoningEffortInDynamicEnvironments/pull/24) | Show missing comparison partners instead of hiding them | `codex/step2-15-matching-summary` / `976779d` | #23 |
 | [#25](https://github.com/Nav1919/ReasoningEffortInDynamicEnvironments/pull/25) | Report answer quality and missing measurements clearly | `codex/step2-16-summary-metrics` / `ec986fb` | #24 |
 | [#26](https://github.com/Nav1919/ReasoningEffortInDynamicEnvironments/pull/26) | Keep saved plans and command-line runs exactly consistent | `codex/step2-17-plan-consistency` / `a5e89f8` | #25 |
+| [#28](https://github.com/Nav1919/ReasoningEffortInDynamicEnvironments/pull/28) | Load weights without extra warm-up questions | `codex/step2-native-warmup` / `77850aa` | #27 |
+| [#29](https://github.com/Nav1919/ReasoningEffortInDynamicEnvironments/pull/29) | Pin actual GPT-OSS weights and controls | `codex/step2-gptoss-pilot` / `3f9b919` | #28 |
+| [#30](https://github.com/Nav1919/ReasoningEffortInDynamicEnvironments/pull/30) | Keep longer loading separate from answer time | `codex/step2-gptoss-load-timeout` / `43c5744` | #29 |
 
 Follow-up fixes stay in their original PRs: `6411d6d` uses metadata GET requests;
 `d243096` repairs a parser regression; `c53bfc0` separates frozen/live recipes;
@@ -118,7 +125,7 @@ The final guide PR builds on #26; its current head is visible on GitHub.
 
 ## Checked and pending
 
-- [x] 59 offline tests pass, including fake-provider end-to-end failures and missing partners.
+- [x] 65 offline tests pass, including fake-provider end-to-end failures and missing partners.
 - [x] Existing historical summary/replay tests pass; original evidence is unchanged.
 - [x] Qwen metadata-only compatibility check passes on installed Ollama 0.35.1.
 - [x] Dry-run native plan: exactly 18 entries, zero model calls.
@@ -126,7 +133,8 @@ The final guide PR builds on #26; its current head is visible on GitHub.
   2.965 seconds, plus a separate warm-up. All 35 other runs remain planned.
   Saved locally in `logs/step2_qwen_smoke_20261019/`; this is a workflow check,
   not a native-effort pilot or a model-quality finding.
-- [ ] Real native pilot and main-model selection, pending the resource decision.
+- [x] GPT-OSS installed and verified; both unsuccessful local attempts preserved.
+- [ ] A completed native comparison and main-model selection; API use needs approval.
 - [ ] Human review and required checks before merge; no teammate messages were sent.
 
 Reviewers: check request equality, failure/denominator handling, and the README
