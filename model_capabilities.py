@@ -16,7 +16,7 @@ OPTIONS = {'num_predict', 'num_ctx', 'temperature', 'seed'}
 
 
 def profile_definition(name):
-    if name not in PROFILES:
+    if not isinstance(name, str) or name not in PROFILES:
         raise ValueError('Unknown capability profile; add verified evidence first')
     return copy.deepcopy(PROFILES[name])
 

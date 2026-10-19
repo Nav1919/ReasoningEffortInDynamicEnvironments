@@ -37,7 +37,7 @@ def validate_config(config, ready=False):
     require(c['provider'] == 'ollama', 'Only authorized Ollama provider is implemented')
     require(c['design'] in ('frozen-six-v1','live-starts-v1'), 'Unknown experiment design')
     model = c['model']
-    require(set(model) == {'tag', 'expected_digest', 'capability_profile'}, 'Explicit model fields required')
+    require(isinstance(model, dict) and set(model) == {'tag', 'expected_digest', 'capability_profile'}, 'Explicit model fields required')
     require(isinstance(model['tag'], str) and bool(model['tag']), 'Exact model tag required')
     digest = model['expected_digest']
     require(digest is None or (isinstance(digest, str) and len(digest) == 64
@@ -65,7 +65,7 @@ def validate_config(config, ready=False):
         positive(interval)
     require(len(set(c['tick_intervals'])) == len(c['tick_intervals']), 'Duplicate intervals')
     require(c['waiting_action'] == 'S', 'Only audited waiting action S is supported')
-    require(set(c['starts']) == {'development', 'evaluation'}, 'Explicit seed splits required')
+    require(isinstance(c['starts'], dict) and set(c['starts']) == {'development', 'evaluation'}, 'Explicit seed splits required')
     selectors = []
     for split in c['starts'].values():
         require(isinstance(split, list) and bool(split), 'Each split needs selectors')

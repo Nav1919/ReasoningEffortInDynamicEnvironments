@@ -503,7 +503,9 @@ def main():
         from comparison_execution import execute_plan
         if args.dry_run:
             parser.error('Use plan --dry-run before execution')
-        execute_plan(folder, args.limit)
+        result = execute_plan(folder, args.limit)
+        if result['status'] not in ('complete','partial'):
+            raise RuntimeError(f"Execution {result['status']}; inspect {folder/'execution.json'}")
         return
     if args.mode == 'plan':
         from comparison_plan import build_plan

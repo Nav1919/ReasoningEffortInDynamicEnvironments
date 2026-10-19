@@ -25,6 +25,14 @@ followed by all 11 tests and offline reproduction commands, passed. Other machin
 and operating systems have not been verified.
 See [setup](docs/freeway_setup.md) and [interface](docs/freeway_interface.md).
 
+## New reasoning-mode comparisons
+
+For new research runs, follow the [short Step 2 guide](docs/step2_handoff.md).
+It saves settings and planned comparisons before model calls, records failures,
+and reports missing partners. Existing Qwen off/on stays separate from native
+Low/Medium/High. The native pilot is prepared offline but awaiting model selection.
+See the guide for commands, PR review order and the resource decision.
+
 ## Start offline
 
 From the repository root, with the virtual environment activated:
