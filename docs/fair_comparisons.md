@@ -57,3 +57,14 @@ wrapping is delayed, and nonterminal collisions reset traffic. Existing
 New `progress_source_v2` adds only that clarification. Original/progress and the
 historical source-corrected template remain unchanged. Frozen diagnostics keep
 these same user instructions; their asynchronous wording limits interpretation.
+
+## Two configuration identifiers
+
+`resolve_run` saves a detached full recipe, selected mode/start/interval/replicate,
+and the exact instruction template. The comparison SHA256 covers **every recipe
+field**, including the complete mode set, seed splits/order/replicates and each
+interval's instruction fingerprint. The run-configuration SHA256 additionally
+selects the mode. Canonical JSON makes dictionary order irrelevant; paths and
+clock times are never inputs. A different token ceiling or mode set changes the
+comparison ID. Same-comparison runs still need matching actual start, condition
+and replicate before they can be paired. Reserved starts cannot be executed here.
