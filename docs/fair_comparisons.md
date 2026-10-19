@@ -126,3 +126,16 @@ response records in the episode. On uses the same command with `--mode on`.
 Recipe-controlled settings cannot be overridden with legacy model/prompt flags.
 Historical commands and default prompts remain supported. Warm-up uses a supported
 control outside gameplay timing. Offline tests use fake responses and clocks.
+
+## Save a plan before model calls
+
+`python freeway_study.py plan --config configs/native_effort_draft.json --output logs/native_plan_01 --dry-run`
+saves an offline `plan.json`, even while model selection is unresolved. It contains
+18 requests: two existing situations per category × three levels, one shared
+2048-token ceiling and one interval. Selection takes the first two selectors per
+category before a seeded shuffle; no model answers influence selection. Rotating
+levels gives each level each order position twice. Full resolved settings,
+rendered requests, actual starts, conditions and replicate/attempt IDs are saved.
+Qwen's separate recipe makes its own plan. The design itself enters comparison
+identity. Live plans cover development starts only; new retries require `--attempt 2`
+and a new output directory. Existing plans cannot be overwritten.

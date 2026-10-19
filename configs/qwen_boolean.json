@@ -12,5 +12,6 @@
   "waiting_action": "S",
   "starts": {"development": [0, 1, 2, 3, 4], "evaluation": [5, 6, 7]},
   "scheduling_seed": 0,
-  "replicates": 1
+  "replicates": 1,
+  "design": "frozen-six-v1"
 }

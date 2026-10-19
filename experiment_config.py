@@ -10,7 +10,7 @@ import math
 from pathlib import Path
 from model_capabilities import OPTIONS, validate_modes
 
-FIELDS = {'schema_version', 'experiment_name', 'provider', 'model', 'modes',
+FIELDS = {'design', 'schema_version', 'experiment_name', 'provider', 'model', 'modes',
           'prompt', 'generation', 'request_timeout', 'environment',
           'tick_intervals', 'waiting_action', 'starts', 'scheduling_seed', 'replicates'}
 
@@ -35,6 +35,7 @@ def validate_config(config, ready=False):
     require(type(c['schema_version']) is int and c['schema_version'] == 1, 'Unsupported schema')
     require(isinstance(c['experiment_name'], str) and bool(c['experiment_name']), 'Name required')
     require(c['provider'] == 'ollama', 'Only authorized Ollama provider is implemented')
+    require(c['design'] in ('frozen-six-v1','live-starts-v1'), 'Unknown experiment design')
     model = c['model']
     require(set(model) == {'tag', 'expected_digest', 'capability_profile'}, 'Explicit model fields required')
     require(isinstance(model['tag'], str) and bool(model['tag']), 'Exact model tag required')
