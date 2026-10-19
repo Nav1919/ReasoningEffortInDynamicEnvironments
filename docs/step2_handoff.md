@@ -122,6 +122,10 @@ The final guide PR builds on #26; its current head is visible on GitHub.
 - [x] Existing historical summary/replay tests pass; original evidence is unchanged.
 - [x] Qwen metadata-only compatibility check passes on installed Ollama 0.35.1.
 - [x] Dry-run native plan: exactly 18 entries, zero model calls.
+- [x] One real Qwen off-mode check: 1 valid answer / 1 measured request,
+  2.965 seconds, plus a separate warm-up. All 35 other runs remain planned.
+  Saved locally in `logs/step2_qwen_smoke_20261019/`; this is a workflow check,
+  not a native-effort pilot or a model-quality finding.
 - [ ] Real native pilot and main-model selection, pending the resource decision.
 - [ ] Human review and required checks before merge; no teammate messages were sent.
 
