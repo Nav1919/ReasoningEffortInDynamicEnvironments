@@ -116,3 +116,13 @@ It saves resolved settings, source/start checks and model metadata. If Ollama is
 unavailable, the file says `setup_failed`, `model_setup`, and the actual error.
 Interrupted setup is saved too. Reusing the same filename fails rather than
 replacing evidence. Retry attempts must use new explicit attempt/run identifiers.
+
+## Existing live runner, saved settings
+
+`python run_model_freeway.py --experiment-config configs/qwen_boolean.json --mode off --seed 0 --tick-seconds 1`
+uses the existing traffic/inference loop, but performs recorded setup first and
+saves the resolved recipe, both IDs, source/model/start evidence and detailed
+response records in the episode. On uses the same command with `--mode on`.
+Recipe-controlled settings cannot be overridden with legacy model/prompt flags.
+Historical commands and default prompts remain supported. Warm-up uses a supported
+control outside gameplay timing. Offline tests use fake responses and clocks.
