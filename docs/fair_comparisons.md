@@ -77,3 +77,13 @@ checks the actual family/controls, and returns the template and capability evide
 Mismatch, absence or unresolved digest stops setup. It never pulls a model.
 All requests use the recipe timeout. Ollama tags are mutable; do not replace
 weights during a run. Metadata validates setup, not action quality.
+
+## What code and environment actually ran
+
+`source_provenance` fingerprints relevant root-level runnable sources and records
+the current commit/local-modification flag, Python/dependency versions, basic
+machine details, and the installed Freeway source hash. It stops on a source
+mismatch. RealtimeGym revision comes from package VCS metadata or its editable
+checkout when recoverable; otherwise it is null with a reason. An installed
+wheel is not assumed to contain Git history. Unavailable hardware data is also
+explicitly null. Source hashes identify modified code even without a clean commit.
