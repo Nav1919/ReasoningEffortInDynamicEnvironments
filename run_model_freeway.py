@@ -148,7 +148,7 @@ def parse_action(response, error=None):
     if not isinstance(content, str):
         return None
     action = content.strip().upper()
-    valid = (error is None and response_fields.get("done_reason") == "stop"
+    valid = (error is None and response.get("done_reason") == "stop"
              and action in {"U", "D", "S"})
     return action if valid else None
 
