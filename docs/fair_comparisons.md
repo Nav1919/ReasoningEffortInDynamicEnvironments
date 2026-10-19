@@ -108,3 +108,11 @@ action validity, action application, and measurement availability. For example,
 does not invalidate a good U/D/S answer. `eval_count` is output, not reasoning tokens.
 Timeouts, request errors, malformed responses, invalid actions, truncations and
 late/discarded responses remain explicit. Raw provider responses are preserved.
+
+## Setup cannot disappear
+
+`setup_run` exclusively creates a run file before any network/model setup.
+It saves resolved settings, source/start checks and model metadata. If Ollama is
+unavailable, the file says `setup_failed`, `model_setup`, and the actual error.
+Interrupted setup is saved too. Reusing the same filename fails rather than
+replacing evidence. Retry attempts must use new explicit attempt/run identifiers.
