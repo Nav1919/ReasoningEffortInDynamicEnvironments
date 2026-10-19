@@ -87,3 +87,14 @@ mismatch. RealtimeGym revision comes from package VCS metadata or its editable
 checkout when recoverable; otherwise it is null with a reason. An installed
 wheel is not assumed to contain Git history. Unavailable hardware data is also
 explicitly null. Source hashes identify modified code even without a clean commit.
+
+## Development and reserved starts
+
+`python experiment_starts.py configs/qwen_boolean.json` verifies initial states
+without playing reserved games. The saved mapping in `configs/freeway_starts.json`
+is 0..7 → 1000,1001,1002,1003,1013,1014,1016,1018. Each has a distinct actual seed
+and complete initial-state fingerprint, including hidden timers/RNG. Selectors
+0..4 remain development. Local historical episode JSON used only 0..4; 5..7
+are reserved evaluation starts, with just three available starts—a real limit.
+Duplicate actual seeds **or** initial layouts are rejected across the entire split.
+Environment selectors, model sampling seed and scheduling seed remain separate.
