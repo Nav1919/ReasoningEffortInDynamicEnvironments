@@ -10,7 +10,7 @@ from run_model_freeway import request_action
 from run_records import setup_run
 
 
-def run_frozen(entry, path, provider, model_check, source_check, clock=None):
+def run_frozen(entry, path, provider, model_check, source_check, clock=None, preloaded=False, preload_run_id=None):
     record = setup_run(path, entry['resolved'], model_check=model_check, source_check=source_check)
     record.update(plan_run_id=entry['run_id'], attempt=entry['attempt'], design='frozen-six-v1',
                   situation=copy.deepcopy(entry['situation']), episode_outcome='not_applicable')
@@ -22,13 +22,29 @@ def run_frozen(entry, path, provider, model_check, source_check, clock=None):
                 or fingerprint(env.observe()) != fingerprint(entry['situation']['observation'])):
             raise ValueError('Saved situation does not match installed simulator replay')
         timeout = entry['resolved']['config']['request_timeout']
-        warmup = copy.deepcopy(entry['request'])
-        warmup['messages'] = [{'role':'user','content':'Return only S.'}]
-        raw, error, start, end = request_action(warmup, None, timeout, provider, clock)
-        record['warmup'] = dict(request=warmup, **decision_record(raw,error), latency_seconds=end-start)
-        if error:
-            record.update(run_status='setup_failed', setup_failure=dict(stage='warmup',reason=error))
-            return record
+        policy = entry['resolved']['config'].get('warmup_policy', 'per_run_question')
+        if policy == 'load_once' and preloaded:
+            record['warmup'] = dict(kind='reuse_preloaded_model', preload_run_id=preload_run_id)
+        else:
+            warmup = copy.deepcopy(entry['request'])
+            warm_provider = provider
+            if policy == 'load_once':
+                warmup = {key:warmup[key] for key in ['model','stream','keep_alive','options']}
+                warmup['prompt'] = ''
+                warm_provider = lambda endpoint, payload, timeout:provider('generate',payload,timeout=timeout)
+            else:
+                warmup['messages'] = [{'role':'user','content':'Return only S.'}]
+            raw, error, start, end = request_action(warmup, None, timeout, warm_provider, clock)
+            if policy == 'load_once':
+                if not error and (not isinstance(raw,dict) or raw.get('done_reason') != 'load'):
+                    error = 'Expected a no-text load response from Ollama'
+                details = dict(kind='model_load_no_text', response=raw, error=error)
+            else:
+                details = decision_record(raw,error)
+            record['warmup'] = dict(request=warmup, **details, latency_seconds=end-start)
+            if error:
+                record.update(run_status='setup_failed', setup_failure=dict(stage='warmup',reason=error))
+                return record
         record['run_status'] = 'running'
         write_json(path, record)
         raw, error, start, end = request_action(entry['request'], None, timeout, provider, clock)

@@ -30,12 +30,18 @@ def positive(value):
 
 
 def validate_config(config, ready=False):
-    require(isinstance(config, dict) and set(config) == FIELDS, 'Unexpected/missing recipe fields')
+    require(isinstance(config, dict), 'Recipe must be an object')
+    version = config.get('schema_version')
+    expected = FIELDS | ({'warmup_policy'} if version == 2 else set())
+    require(set(config) == expected, 'Unexpected/missing recipe fields')
     c = copy.deepcopy(config)
-    require(type(c['schema_version']) is int and c['schema_version'] == 1, 'Unsupported schema')
+    require(type(c['schema_version']) is int and c['schema_version'] in (1, 2), 'Unsupported schema')
     require(isinstance(c['experiment_name'], str) and bool(c['experiment_name']), 'Name required')
     require(c['provider'] == 'ollama', 'Only authorized Ollama provider is implemented')
     require(c['design'] in ('frozen-six-v1','live-starts-v1'), 'Unknown experiment design')
+    if version == 2:
+        require(c['warmup_policy'] == 'load_once' and c['design'] == 'frozen-six-v1',
+                'Schema 2 supports a single no-text preload for the frozen pilot')
     model = c['model']
     require(isinstance(model, dict) and set(model) == {'tag', 'expected_digest', 'capability_profile'}, 'Explicit model fields required')
     require(isinstance(model['tag'], str) and bool(model['tag']), 'Exact model tag required')

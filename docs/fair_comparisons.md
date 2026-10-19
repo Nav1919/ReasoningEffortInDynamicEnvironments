@@ -189,3 +189,14 @@ so saved plans and live logs have identical instructions and IDs. Reordering JSO
 object keys does not change mode order or the plan. Completed comparisons also
 check server version/template consistency. Server error response bodies are saved
 when available rather than being discarded with the HTTP error.
+
+## Native pilot: 18 questions, one model load
+
+Schema-2 frozen recipes explicitly select `warmup_policy: load_once`. Execution
+first calls Ollama `/api/generate` with an empty prompt, which loads weights
+without generating an answer; it records that response separately. Exactly 18
+subsequent `/api/chat` calls ask the six situations at the three effort levels.
+Later run logs reference the first preload. Schema-1 Qwen recipes retain their
+historical per-run warm-up questions and their original comparison IDs.
+The inspected Ollama 0.35.1 `server/routes.go` returns `done_reason: load` before
+text generation when the prompt is empty; an unexpected load response stops setup.

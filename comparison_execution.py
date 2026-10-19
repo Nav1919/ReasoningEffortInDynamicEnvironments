@@ -59,12 +59,13 @@ def execute_plan(folder, limit=1, provider=post_json, model_check=None,
     (folder/'runs').mkdir(exist_ok=True)
     check = model_check or (lambda c:verify_model(c,provider))
     try:
-        for entry, status in zip(plan['runs'][:limit],manifest['runs']):
+        for index, (entry, status) in enumerate(zip(plan['runs'][:limit],manifest['runs'])):
             status['status']='running'
             write_json(path,manifest)
             log = folder/status['log']
             try:
-                record = (run_frozen(entry,log,provider,check,source_check,clock)
+                record = (run_frozen(entry,log,provider,check,source_check,clock,preloaded=index>0,
+                                     preload_run_id=plan['runs'][0]['run_id'])
                           if plan['design']=='frozen-six-v1' else live_runner(entry,log))
                 status['status']=record['run_status']
             except BaseException as error:
