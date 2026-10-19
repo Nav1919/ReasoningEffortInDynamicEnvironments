@@ -33,9 +33,9 @@ def post_json(endpoint, payload, timeout=180):
     # send a request to the Ollama server running on our own computer
     request = Request(
         f"http://localhost:11434/api/{endpoint}",
-        data=json.dumps(payload).encode("utf-8"),
+        data=None if endpoint in {"version", "tags"} else json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json"},
-        method="POST",
+        method="GET" if endpoint in {"version", "tags"} else "POST",
     )
     with urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))

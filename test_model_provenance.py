@@ -1,5 +1,7 @@
 """Fake-provider identity checks; no Ollama/network required."""
 import unittest
+from unittest.mock import patch, MagicMock
+from run_model_freeway import post_json
 from model_provenance import verify_model
 from test_experiment_config import recipe
 
@@ -32,3 +34,14 @@ class ModelIdentityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             verify_model(c, lambda *a, **k:calls.append(a))
         self.assertEqual(calls, [])
+
+
+class MetadataTransportTests(unittest.TestCase):
+    def test_metadata_get_and_chat_post(self):
+        with patch('run_model_freeway.urlopen') as opening:
+            opening.return_value.__enter__.return_value.read.return_value = b'{}'
+            for endpoint in ['version', 'tags', 'show', 'chat']:
+                post_json(endpoint, {}, timeout=7)
+                request = opening.call_args.args[0]
+                self.assertEqual(request.get_method(), 'GET' if endpoint in ['version','tags'] else 'POST')
+                self.assertEqual(opening.call_args.kwargs['timeout'], 7)
