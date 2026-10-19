@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 import realtimegym
+from reasoning_modes import QWEN_MODES, thinking_value
 
 
 def convert_scalar(value):
@@ -145,7 +146,7 @@ def build_request(observation, args):
         "model": args.model,
         "messages": [{"role": "user", "content": build_prompt(
             observation, args.tick_seconds, args.prompt, args.board)}],
-        "think": args.thinking == "on", "stream": False, "keep_alive": "5m",
+        "think": thinking_value(QWEN_MODES[args.thinking]), "stream": False, "keep_alive": "5m",
         "options": {"temperature": 0.6, "seed": getattr(args, "model_seed", 0),
                     "num_predict": 2048, "num_ctx": 4096},
     }
