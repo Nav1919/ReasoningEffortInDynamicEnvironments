@@ -181,3 +181,11 @@ request and valid-answer counts, immediate safety/relevant-choice numerators and
 denominators, latency, and token availability. Empty measurements stay null;
 measured zero remains zero. Frozen diagnostics never count as game crossings.
 Warm-ups are excluded. Existing historical summary/replay commands still work.
+
+## Plan/CLI consistency checks
+
+A CLI interval of `1.0` is resolved to the recipe's `1` before rendering requests,
+so saved plans and live logs have identical instructions and IDs. Reordering JSON
+object keys does not change mode order or the plan. Completed comparisons also
+check server version/template consistency. Server error response bodies are saved
+when available rather than being discarded with the HTTP error.

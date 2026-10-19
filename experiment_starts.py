@@ -27,7 +27,8 @@ def validate_start_records(records):
 def start_registry(config, factory=recreate):
     c = validate_config(config)
     records = []
-    for split, selectors in c['starts'].items():
+    for split in ('development','evaluation'):
+        selectors = c['starts'][split]
         for selector in selectors:
             env, actual = factory(selector, '')
             records.append(dict(requested_selector=selector, actual_seed=actual,

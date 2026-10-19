@@ -15,10 +15,11 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 import realtimegym
 from reasoning_modes import QWEN_MODES, thinking_value
-from experiment_config import validate_config
+from experiment_config import validate_config, positive
 import hashlib
 
 
@@ -136,6 +137,12 @@ def request_action(payload, probe_delay, timeout=180, provider=None, clock=None)
         # a failed model request shouldn't stop the game clock
         # save the error and fall back to S when this request finishes
         response = None
+        if isinstance(exception, HTTPError):
+            body = exception.read().decode('utf-8', errors='replace')
+            try:
+                response = json.loads(body)
+            except ValueError:
+                response = {'raw_http_error_body':body}
         error = f"{type(exception).__name__}: {exception}"
     finished = clock()
     return response, error, started, finished
@@ -157,6 +164,8 @@ def parse_action(response, error=None):
 
 def prompt_record(config, tick_seconds):
     """Record the exact instruction prefix and a fingerprint, excluding observation."""
+    positive(tick_seconds)
+    tick_seconds = next(tick for tick in config['tick_intervals'] if tick == tick_seconds)
     prompt = config['prompt']
     template = build_prompt({}, tick_seconds, prompt['variant'], prompt['board'])
     instructions = template.rsplit('Observation:\n', 1)[0] + 'Observation:\n'
@@ -169,6 +178,7 @@ def build_comparison_request(observation, config, mode, tick_seconds):
     config = validate_config(config)
     if mode not in config['modes'] or tick_seconds not in config['tick_intervals']:
         raise ValueError('Mode/condition is outside the recorded design')
+    tick_seconds = next(tick for tick in config['tick_intervals'] if tick == tick_seconds)
     prompt = config['prompt']
     return dict(model=config['model']['tag'],
         messages=[{'role':'user', 'content':build_prompt(observation, tick_seconds,

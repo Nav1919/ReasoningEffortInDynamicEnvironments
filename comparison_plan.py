@@ -6,6 +6,8 @@ category, independent of model outputs. Live design: all development starts.
 import copy
 import random
 from experiment_config import validate_config, integer
+from model_capabilities import profile_definition
+from reasoning_modes import thinking_value
 from experiment_identity import fingerprint, resolve_run
 from experiment_starts import start_registry
 from freeway_study import build_situations, recreate
@@ -28,7 +30,9 @@ def build_plan(config, attempt=1):
             situations.append(dict(id=f'start_{selector}', requested_seed=selector,
                 actual_seed=actual, preceding_actions='', observation=copy.deepcopy(env.observe())))
     random.Random(c['scheduling_seed']).shuffle(situations)
-    runs, modes = [], list(c['modes'])
+    order = profile_definition(c['model']['capability_profile'])['values']
+    modes = sorted(c['modes'], key=lambda mode:order.index(thinking_value(c['modes'][mode])))
+    runs = []
     for replicate in range(c['replicates']):
         for tick in c['tick_intervals']:
             for index, situation in enumerate(situations):

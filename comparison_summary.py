@@ -44,7 +44,8 @@ def comparison_summary(folder):
                     raise ValueError('Actual model/environment identity is incompatible')
                 if not source.get('source_sha256'):
                     raise ValueError('Completed run lacks runnable source fingerprints')
-                source_signatures.add(fingerprint(source['source_sha256']))
+                source_signatures.add(fingerprint(dict(sources=source['source_sha256'],
+                    server_version=model.get('server_version'), template=model.get('metadata',{}).get('template'))))
             if record['run_status'] != status:
                 status = 'inconsistent_record'
         elif status != 'planned':
