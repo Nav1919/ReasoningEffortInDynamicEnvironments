@@ -29,7 +29,7 @@ def comparison_summary(folder):
         if record:
             if fingerprint(record['resolved']) != fingerprint(entry['resolved']):
                 raise ValueError('Run settings are incompatible with the saved comparison')
-            if record.get('start') != entry['start']:
+            if (record.get('start') is not None or record['run_status']=='complete') and record.get('start') != entry['start']:
                 raise ValueError('Recorded actual start is incompatible with planned start')
             for decision in record.get('decisions', []):
                 observation = decision.get('observation', entry['situation']['observation'])
@@ -42,7 +42,9 @@ def comparison_summary(folder):
                 if (model.get('digest') != plan['config']['model']['expected_digest']
                         or source.get('freeway_source_sha256') != plan['config']['environment']['source_sha256']):
                     raise ValueError('Actual model/environment identity is incompatible')
-                source_signatures.add(fingerprint(source.get('source_sha256')))
+                if not source.get('source_sha256'):
+                    raise ValueError('Completed run lacks runnable source fingerprints')
+                source_signatures.add(fingerprint(source['source_sha256']))
             if record['run_status'] != status:
                 status = 'inconsistent_record'
         elif status != 'planned':

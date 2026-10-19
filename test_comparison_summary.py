@@ -5,16 +5,16 @@ import tempfile
 import unittest
 from comparison_execution import execute_plan
 from comparison_summary import comparison_summary
-from test_comparison_execution import ExecutionTests
+import test_comparison_execution as execution_tests
 
 
 class SummaryTests(unittest.TestCase):
     def prepare(self, folder):
-        c = ExecutionTests.plan if hasattr(ExecutionTests,'plan') else None
+        c = execution_tests.ExecutionTests.plan if hasattr(execution_tests.ExecutionTests,'plan') else None
         if c is None:
-            ExecutionTests.setUpClass()
-        (folder/'plan.json').write_text(json.dumps(ExecutionTests.plan))
-        return ExecutionTests.plan
+            execution_tests.ExecutionTests.setUpClass()
+        (folder/'plan.json').write_text(json.dumps(execution_tests.ExecutionTests.plan))
+        return execution_tests.ExecutionTests.plan
 
     def test_missing_partner_and_success_are_explicit(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -45,3 +45,16 @@ class SummaryTests(unittest.TestCase):
             path.write_text(json.dumps(record))
             with self.assertRaisesRegex(ValueError,'incompatible'):
                 comparison_summary(folder)
+
+    def test_setup_failure_is_counted_even_without_a_start(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder=Path(temporary)
+            self.prepare(folder)
+            def fail(config):
+                raise ValueError('Simulator source differs')
+            execute_plan(folder,limit=1,provider=lambda *a,**k:None,
+                         model_check=lambda c:{},source_check=fail)
+            result=comparison_summary(folder)
+            count=sum(r['statuses'].get('setup_failed',0) for r in result['mode_counts'].values())
+            self.assertEqual(count,1)
+            self.assertEqual(len(result['pairs'][0]['missing_partners']),2)
