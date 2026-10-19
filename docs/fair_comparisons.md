@@ -163,3 +163,11 @@ the existing runner with the saved recipe. Every future/unrun entry stays
 does not prove server computation stopped: verify Ollama is idle before retrying.
 Existing execution files are rejected; create a new plan/folder with a new attempt
 ID to retry. `--limit 18` is the explicit full native pilot, currently blocked.
+
+## Pairing and missing partners
+
+New summaries check the saved plan/config IDs, actual model/environment identities
+and runnable source fingerprints. Pairing uses comparison ID + actual initial
+start + situation observation + interval + replicate + attempt, never the selector
+alone. Each mode keeps its status; an unrun/failed partner is named explicitly.
+A folder of historical Qwen records cannot be pooled into this comparison.
