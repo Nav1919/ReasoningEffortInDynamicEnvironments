@@ -212,3 +212,12 @@ spelling was rejected before inference and corrected from that actual metadata.
 It uses the one-load policy, identical full-board instructions and common
 2048-token/4096-context settings. This establishes identity/control compatibility;
 runtime feasibility and main-comparison model selection await the measured pilot.
+
+## One longer-load retry
+
+The first GPT-OSS attempt timed out during no-text loading at 180.081 seconds;
+zero questions ran, and the server confirmed cancellation. Preserve that attempt.
+`configs/gptoss_native_longer_load.json` is a schema-3 recipe with a separate
+600-second **preload** deadline; measured answers still have the same 180-second
+deadline and 2048-token ceiling. Retry attempt 2 uses a new folder/IDs. This is a
+cold-start feasibility check, not a change to native effort or answer budgets.

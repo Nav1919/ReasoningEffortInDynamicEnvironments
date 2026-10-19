@@ -1,0 +1,63 @@
+{
+  "schema_version": 3,
+  "experiment_name": "gptoss20b-native-pilot-longer-load-v1",
+  "provider": "ollama",
+  "model": {
+    "tag": "gpt-oss:20b",
+    "expected_digest": "f38aa0c53da5f8c49d08c43a99df24ff53167fe68e24664a7777288e7656fdfe",
+    "capability_profile": "gpt-oss-effort-v1"
+  },
+  "modes": {
+    "low": {
+      "control": "effort",
+      "value": "low"
+    },
+    "medium": {
+      "control": "effort",
+      "value": "medium"
+    },
+    "high": {
+      "control": "effort",
+      "value": "high"
+    }
+  },
+  "prompt": {
+    "variant": "progress_source_v2",
+    "version": 2,
+    "board": "full"
+  },
+  "generation": {
+    "num_predict": 2048,
+    "num_ctx": 4096,
+    "temperature": 0.6,
+    "seed": 0
+  },
+  "request_timeout": 180,
+  "environment": {
+    "id": "Freeway-v0",
+    "source_sha256": "9a0a252cb1db44830920268f745f0dadd3a00e4ccbe6863b36a38daa3126367a"
+  },
+  "tick_intervals": [
+    1
+  ],
+  "waiting_action": "S",
+  "starts": {
+    "development": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "evaluation": [
+      5,
+      6,
+      7
+    ]
+  },
+  "scheduling_seed": 0,
+  "replicates": 1,
+  "design": "frozen-six-v1",
+  "warmup_policy": "load_once",
+  "preload_timeout": 600
+}

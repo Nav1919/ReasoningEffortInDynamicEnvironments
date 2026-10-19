@@ -46,3 +46,22 @@ class NativePreloadTests(unittest.TestCase):
             c.update(change)
             with self.assertRaises(ValueError):
                 validate_config(c)
+
+    def test_longer_load_does_not_extend_answer_timeout(self):
+        c=self.native_recipe()
+        c.update(schema_version=3,preload_timeout=600)
+        timeouts=[]
+        def provider(endpoint,payload,timeout):
+            timeouts.append((endpoint,timeout))
+            if endpoint=='generate':
+                return {'done_reason':'load'}
+            return {'message':{'content':'S'},'done_reason':'stop'}
+        with tempfile.TemporaryDirectory() as temporary:
+            folder=Path(temporary)
+            (folder/'plan.json').write_text(json.dumps(build_plan(c,attempt=2)))
+            execute_plan(folder,limit=1,provider=provider,model_check=lambda c:{},source_check=lambda c:{})
+        self.assertEqual(timeouts,[('generate',600),('chat',180)])
+        for value in [0,True,float('inf')]:
+            c['preload_timeout']=value
+            with self.assertRaises(ValueError):
+                validate_config(c)

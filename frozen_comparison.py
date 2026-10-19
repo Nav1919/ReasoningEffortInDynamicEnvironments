@@ -34,7 +34,8 @@ def run_frozen(entry, path, provider, model_check, source_check, clock=None, pre
                 warm_provider = lambda endpoint, payload, timeout:provider('generate',payload,timeout=timeout)
             else:
                 warmup['messages'] = [{'role':'user','content':'Return only S.'}]
-            raw, error, start, end = request_action(warmup, None, timeout, warm_provider, clock)
+            warm_timeout = entry['resolved']['config'].get('preload_timeout', timeout) if policy=='load_once' else timeout
+            raw, error, start, end = request_action(warmup, None, warm_timeout, warm_provider, clock)
             if policy == 'load_once':
                 if not error and (not isinstance(raw,dict) or raw.get('done_reason') != 'load'):
                     error = 'Expected a no-text load response from Ollama'
