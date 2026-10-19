@@ -142,3 +142,13 @@ and a new output directory. Existing plans cannot be overwritten.
 
 `configs/qwen_live.json` is the separate live-game recipe. The runner rejects
 a frozen-pilot recipe for live gameplay so the saved design cannot be mislabeled.
+
+## One frozen pilot request
+
+`run_frozen` uses the existing model-call and parsing helpers after recorded
+setup and a separately logged warm-up. Traffic is frozen for the measured call;
+its returned action is checked on an independent simulator copy, not executed in
+a live game. It saves latency, raw answer, token availability, immediate safety
+and the category's relevant choice. Waiting-useful means a first action compatible
+with the saved short safe-progress sequence, not proof the model completes it.
+Invalid answers remain invalid; there is no executed fallback in this diagnostic.

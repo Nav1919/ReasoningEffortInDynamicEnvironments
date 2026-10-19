@@ -117,10 +117,12 @@ def build_prompt(observation, tick_seconds, strategy="original", board="full"):
     return prompt
 
 
-def request_action(payload, probe_delay, timeout=180):
+def request_action(payload, probe_delay, timeout=180, provider=None, clock=None):
     # this function runs in a worker thread
     # only the main thread touches the environment
-    started = time.perf_counter()
+    clock = clock or time.perf_counter
+    provider = provider or post_json
+    started = clock()
     try:
         if probe_delay is not None:
             # this is a clock test, not a model response
@@ -128,14 +130,14 @@ def request_action(payload, probe_delay, timeout=180):
             time.sleep(probe_delay)
             response = {"message": {"content": "U"}, "done_reason": "stop"}
         else:
-            response = post_json("chat", payload, timeout=timeout)
+            response = provider("chat", payload, timeout=timeout)
         error = None
     except Exception as exception:
         # a failed model request shouldn't stop the game clock
         # save the error and fall back to S when this request finishes
         response = None
         error = f"{type(exception).__name__}: {exception}"
-    finished = time.perf_counter()
+    finished = clock()
     return response, error, started, finished
 
 
