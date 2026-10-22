@@ -10,7 +10,7 @@ Our research question is: **How should an LLM agent allocate reasoning effort wh
 
 ## How to Navigate this Repo
 
-The repository currently contains this README and the planning pages in `docs/`. Code, tests, and tutorial notebooks have **not** been added yet. 
+The repository contains the research plan and an agent automation setup. Research experiment code and tutorial notebooks have not been added yet.
 
 | Path | What it contains | Status |
 |---|---|---|
@@ -22,7 +22,11 @@ The repository currently contains this README and the planning pages in `docs/`.
 | `docs/final-report.md` | Final-report working outline | Available |
 | `docs/related-works.md` | Paper summaries and annotation links | Available |
 | `docs/weekly-tracker.md` | 11-week task plan, check-ins, and result log | Available |
-| Code, tests, and notebooks | Add paths and descriptions as they are created | Not yet available |
+| `docs/automation.md` | Hermes/Codex setup, credential boundaries, budgets, validation and remaining actions | Available |
+| `automation/manage.py` | Host-only identity verification, isolated runtime preparation and draft PR publishing; run `python automation/manage.py --help`; tested by `tests/test_automation.py` | Available |
+| `automation/` | Native Hermes profiles, Codex sandbox configuration, two-container deployment and research task templates | Available; runtime validation pending |
+| `tests/test_automation.py` | Offline automation checks; run `python -m unittest discover -s tests -v` | Available |
+| Research code and notebooks | Add paths and descriptions as they are created | Not yet available |
 
 @Team Members: When adding code, list **each runnable code file** here with its purpose, usage, and unit-test link. Keep notebook entries here too, including prerequisites and the order in which to run them.
 
