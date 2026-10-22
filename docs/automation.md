@@ -539,3 +539,23 @@ did not restrict the native CLI surface. An inactive routing patch and tighter
 worker CLI template are prepared; three fake-factory checks pass. The coding
 handoff is still unverified, and no extra retry is authorized by that spent
 single-attempt test. See the proposal for details.
+
+
+## October 22 corrected runtime validation
+
+The authorized corrected run `t_7dcc899a` used a real Codex app-server process,
+verified the user author and assigned branch, created only its requested doc,
+and passed 17 tests in the older isolated checkout. Git staging was denied at
+its shared worktree index.lock, so it blocked cleanly with no commit or review
+handoff. Both temporary configurations were restored. Its untracked artifact
+remains preserved. The setup checkout now passes 30 tests; these counts refer
+to different snapshots and must not be conflated.
+
+The no-model diagnosis and compatible forwarding patch are recorded in
+`automation/security-proposal/worker-persistence-review.md`. The actual native
+app-server sandbox probe now allows the approved Git writes while denying
+home/board writes and networking. Installed Codex 0.163.0 does not expose the
+newer named-profile API fields; the inactive adapter uses its supported legacy
+sandbox fields for only the exact approved clone profile and assigned metadata
+path. Persistent worker activation and a successful commit/review handoff remain
+unverified. The controller continues to run on its unchanged image.

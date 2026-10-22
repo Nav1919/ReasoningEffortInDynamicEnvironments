@@ -101,6 +101,8 @@ class CallbackPolicyTests(unittest.TestCase):
         self.assertEqual(content, worker_config.configure(content, coding=True))
         config = tomllib.loads(content)
         self.assertEqual(config["default_permissions"], "research-git")
+        self.assertNotIn("sandbox_mode", config)
+        self.assertNotIn("sandbox_workspace_write", config)
         profile = config["permissions"]["research-git"]
         self.assertEqual(profile["extends"], ":workspace")
         self.assertEqual(profile["filesystem"], {"/workspace/repo/.git": "write"})
@@ -108,6 +110,17 @@ class CallbackPolicyTests(unittest.TestCase):
         tools = config["mcp_servers"]["hermes-tools"]["tools"]
         self.assertEqual(set(tools), {"kanban_list", "kanban_show", "kanban_heartbeat",
             "kanban_comment", "kanban_block", "kanban_request_review"})
+
+    def test_assigned_worktree_metadata_rule_is_exact_and_idempotent(self):
+        import tomllib
+        path = "/workspace/repo/.git/worktrees/t_1234abcd"
+        content = worker_config.configure(self.baseline(), coding=True, worktree_git=path)
+        self.assertEqual(content, worker_config.configure(content, coding=True, worktree_git=path))
+        rules = tomllib.loads(content)["permissions"]["research-git"]["filesystem"]
+        self.assertEqual(rules, {"/workspace/repo/.git": "write", path: "write"})
+        for invalid in ("/opt/data", "/workspace/repo/.git/worktrees/../config", "/workspace/other/.git"):
+            with self.assertRaises(ValueError):
+                worker_config.configure(self.baseline(), coding=True, worktree_git=invalid)
 
     def baseline(self):
         return (ROOT / "automation/codex.toml").read_text() + '''
