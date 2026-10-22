@@ -364,3 +364,53 @@ request-review. Complete, unblock, task creation and review decisions remain
 unapproved. MCP operations execute outside the shell sandbox; board mutation is
 an explicit additional authority, scoped by available tool names rather than
 by card ownership. The proposal needs consent before application or testing.
+
+## October 22 bounded coding-permission test
+
+The operator explicitly approved the coding-permission test after the earlier
+pause. The worker's Codex configuration was snapshotted in memory, changed only
+for a one-off container, and restored in `finally` afterward. No persistent
+service or broader permission profile was activated.
+
+The real no-model probe passed as UID 10000: workspace and isolated-clone Git
+metadata writes succeeded; writes to `/opt/data` and `/board`, and IP socket
+creation, were denied. This confirms the native `research-git` profile works
+with the approved syscall override. The post-migration helper now has an
+explicit `--allow-local-commits` opt-in; use it only within an approved test or
+a separately approved deployment, never as part of default preparation.
+
+A native Kanban card `t_2fb6efc4` was created with one attempt, 180 seconds,
+`local-only` completion and branch `agent/orchestration-smoke`. Native dispatch
+created `/workspace/repo/.worktrees/t_2fb6efc4` and launched the coder profile.
+The worker failed while persisting its conversation, before any tracked edit or
+commit. Native Hermes recorded exit 1 and auto-blocked the card after its first
+failure. Its worktree remains clean at `41890fd`; preserve the card, native logs,
+run history and pending journal for diagnosis. This is a failed end-to-end test.
+
+The retained journal's failed operation was `session.sidecars`, patch key
+`_usage_anchor`; the native worker reported `WorkerPersistenceError:
+permission_denied` during persistence and token-accounting flush. Storage had
+ample VM space and correct nonroot ownership. This narrows the issue to the
+managed session persistence path; it does not prove which upstream ownership
+check rejected it. No check was disabled or patched. Existing upstream pytest
+regressions could not run because pytest is absent from the pinned runtime;
+no package was installed to hide that limitation.
+
+The one-pass dispatcher and its child PIDs must be inspected/reaped from the
+**same container process namespace**. A separate `compose run` can read shared
+SQLite state but cannot reliably judge another container's worker PID. For this
+test the native reaper ran through `docker exec` in the original test container
+with zero permitted spawns. Production uses one persistent worker dispatcher;
+do not run competing dispatchers or cross-container PID reapers.
+
+The current repository has 26 passing offline checks, including the opt-in
+profile's exact Git scope, disabled network, six permitted callback names and
+idempotence. A successful shell-permission probe is not evidence of a successful
+managed worker or a completed research task. The failed card remains blocked
+pending a diagnosed fix and deliberate operator restart, with no automatic retry.
+
+Discord onboarding is in progress for a newly created Hermes Research app.
+The user creates its credential in Discord and enters it only in the native
+controller onboarding window. Do not place its token in this document, PR,
+worker home, command arguments or chat. Verify token presence, owner allowlist,
+intents and actual delivery before claiming the adapter active.

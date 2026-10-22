@@ -74,6 +74,20 @@ class BundleHandoffTests(unittest.TestCase):
 
 
 class CallbackPolicyTests(unittest.TestCase):
+    def test_opt_in_coding_policy_is_scoped_and_idempotent(self):
+        import tomllib
+        content = worker_config.configure(self.baseline(), coding=True)
+        self.assertEqual(content, worker_config.configure(content, coding=True))
+        config = tomllib.loads(content)
+        self.assertEqual(config["default_permissions"], "research-git")
+        profile = config["permissions"]["research-git"]
+        self.assertEqual(profile["extends"], ":workspace")
+        self.assertEqual(profile["filesystem"], {"/workspace/repo/.git": "write"})
+        self.assertFalse(profile["network"]["enabled"])
+        tools = config["mcp_servers"]["hermes-tools"]["tools"]
+        self.assertEqual(set(tools), {"kanban_list", "kanban_show", "kanban_heartbeat",
+            "kanban_comment", "kanban_block", "kanban_request_review"})
+
     def baseline(self):
         return (ROOT / "automation/codex.toml").read_text() + '''
 # managed by hermes-agent

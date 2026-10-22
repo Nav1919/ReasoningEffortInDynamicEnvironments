@@ -1,12 +1,15 @@
-"""Apply the approved read-only callback policy to a dedicated worker home.
+"""Configure callback routing and explicitly approved worker permissions.
 
 Run after native Hermes `codex-runtime migrate`: python configure_worker.py.
-Reads CODEX_HOME/config.toml (default /opt/data/codex); changes only Hermes
-callback visibility and approval for kanban_list/show. No credentials are read.
+Reads CODEX_HOME/config.toml (default /opt/data/codex). Default changes only
+callback routing/visibility and kanban_list/show approval. The opt-in
+--allow-local-commits selects the separately consent-gated coding proposal;
+restore the original config after a bounded test. No credentials are read.
 Refuses a missing native registration or relaxed sandbox. Tests:
 tests/test_automation.py; actual authenticated board-read smoke in docs/automation.md.
 """
 import os
+import argparse
 from pathlib import Path
 import tomllib
 
@@ -25,7 +28,7 @@ approval_mode = "approve"
 '''
 
 
-def configure(content):
+def configure(content, coding=False):
     settings = tomllib.loads(content)
     if (settings.get("sandbox_mode") != "workspace-write"
             or settings.get("approval_policy") != "never"
@@ -53,11 +56,35 @@ def configure(content):
         content += DIRECT
     elif mode != tomllib.loads(DIRECT)["features"]["code_mode"]:
         raise ValueError("Existing code-mode configuration requires review")
+    if coding:
+        proposal = (Path(__file__).parent / "security-proposal/coding-permissions.toml").read_text()
+        permissions, tools = proposal.split("# Proposed callback approvals", 1)
+        tools = tools[tools.index("[mcp_servers."):]
+        parsed = tomllib.loads(content)
+        existing = parsed.get("permissions", {}).get("research-git")
+        expected = tomllib.loads(permissions)["permissions"]["research-git"]
+        if existing is None:
+            content += "\n" + permissions
+        elif existing != expected:
+            raise ValueError("Existing coding permission profile requires review")
+        if tools.strip() not in content:
+            content = content.replace(END, tools + "\n" + END)
+        selected = parsed.get("default_permissions", ":workspace")
+        if selected not in (":workspace", "research-git"):
+            raise ValueError("Existing selected permissions require review")
+        if 'default_permissions = ":workspace"' in content:
+            content = content.replace('default_permissions = ":workspace"', 'default_permissions = "research-git"', 1)
+        elif "default_permissions" not in parsed:
+            content = 'default_permissions = "research-git"\n' + content
     tomllib.loads(content)
     return content
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--allow-local-commits", action="store_true",
+        help="Only after explicit approval: select the proposed Git and four handoff permissions")
+    args = parser.parse_args()
     path = Path(os.environ.get("CODEX_HOME", "/opt/data/codex")) / "config.toml"
-    path.write_text(configure(path.read_text()))
-    print("Hermes board reads configured; workspace sandbox retained")
+    path.write_text(configure(path.read_text(), coding=args.allow_local_commits))
+    print("Hermes callback configured; workspace sandbox and disabled shell network retained")
