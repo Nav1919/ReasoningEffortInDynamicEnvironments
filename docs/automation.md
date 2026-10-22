@@ -513,3 +513,20 @@ The repository now has 28 passing offline checks. Controller deployment is
 
 partial; the end-to-end coding handoff remains blocked on managed persistence.
 
+
+
+## Managed persistence diagnosis — October 22
+
+A credential-free native managed-worker reproduction located `permission_denied`
+at the exact live-process birth check: Linux reported a -1.0 second difference
+for the same worker. The installed psutil derives epoch birth from a mutable boot
+epoch. Separately, the native Codex thread-ID sidecar is missing from the worker
+allowlist. An inactive compatibility patch and scoped test proposal are in
+`automation/security-proposal/worker-persistence-review.md`. Three pure-function
+checks pass; no patched runtime or live permissions have been activated.
+
+The operator then approved disposable patched-runtime testing. The native managed
+worker test passed, followed by 11 fake-Codex/native receipt and fencing checks.
+No credentials or production volumes were present. Test-fixture diffs and exact
+limits are recorded with the proposal. The patch remains inactive in persistent
+services; a credentialed coding/commit/review handoff still needs validation.
