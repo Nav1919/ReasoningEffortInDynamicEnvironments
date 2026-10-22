@@ -1,0 +1,17 @@
+# ignore our local Python environment
+.venv/
+
+# ignore API keys but allow a placeholder template
+.env
+.env.*
+!.env.example
+
+# ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# ignore generated episode logs
+logs/
+
+# ignore macOS folder metadata
+.DS_Store
