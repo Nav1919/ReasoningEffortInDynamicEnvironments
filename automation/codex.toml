@@ -1,9 +1,0 @@
-# Dedicated container home; never copy personal plugins or MCP configuration.
-sandbox_mode = "workspace-write"
-approval_policy = "never"
-
-[sandbox_workspace_write]
-network_access = false
-
-[features]
-apps = false

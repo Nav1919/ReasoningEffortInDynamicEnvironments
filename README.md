@@ -10,7 +10,7 @@ Our research question is: **How should an LLM agent allocate reasoning effort wh
 
 ## How to Navigate this Repo
 
-The repository contains the research plan and an agent automation setup. Research experiment code and tutorial notebooks have not been added yet.
+The repository currently contains this README and the planning pages in `docs/`. Code, tests, and tutorial notebooks have **not** been added yet.
 
 | Path | What it contains | Status |
 |---|---|---|
@@ -22,19 +22,11 @@ The repository contains the research plan and an agent automation setup. Researc
 | `docs/final-report.md` | Final-report working outline | Available |
 | `docs/related-works.md` | Paper summaries and annotation links | Available |
 | `docs/weekly-tracker.md` | 11-week task plan, check-ins, and result log | Available |
-| `docs/automation.md` | Hermes/Codex setup, credential boundaries, budgets, validation and remaining actions | Available |
-| `automation/manage.py` | Host-only identity verification, disk/Docker preflight, isolated runtime preparation and draft PR publishing; run `python automation/manage.py --help`; tested by `tests/test_automation.py` | Available |
-| `automation/` | Native Hermes profiles, Codex sandbox configuration, two-container deployment and research task templates | Available; runtime validation pending |
-| `tests/test_automation.py` | Offline automation checks; run `python -m unittest discover -s tests -v` | Available |
-| `automation/sandbox_smoke.py` | No-model container test of workspace writes and denied home/Git/network access; run using the mount command in `docs/automation.md`; failure propagation tested by `tests/test_automation.py` | Passed with approved one-off worker profile |
-| `automation/security-proposal/` | Pinned OpenAI syscall profile and inactive worker override requiring explicit security approval | One-off test approved and passed; persistent activation pending |
-| `automation/seed_linux_state.py` | Seed dedicated Windows runtime into Linux-owned Docker volumes; run after preparation; manual ownership and integration checks in `docs/automation.md` | Available |
-| `automation/configure_worker.py` | Post-migration callback routing and approved board-read permissions; mounted run in `docs/automation.md`; tests in `tests/test_automation.py` | Available |
-| `automation/export_worker.py` | Export a clean Linux-volume agent branch through a read-only, offline Git-bundle helper; run with `--branch agent/task-id --worktree /workspace/path`; real bundle tests in `tests/test_automation.py` | Available |
-| `automation/board_snapshot.py` | Stable read-only board JSON for Hermes monitor-script hashing; copy to controller scripts as documented; tests in `tests/test_automation.py` | Available |
-| Research code and notebooks | Add paths and descriptions as they are created | Not yet available |
+| Code, tests, and notebooks | Add paths and descriptions as they are created | Not yet available |
 
 @Team Members: When adding code, list **each runnable code file** here with its purpose, usage, and unit-test link. Keep notebook entries here too, including prerequisites and the order in which to run them.
+
+Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deployment are managed outside this research repository.
 
 ## How to Export & Use the Code
 
@@ -49,7 +41,7 @@ You can also select **Code → Download ZIP** on GitHub.
 
 ## Tutorial Notebooks
 
-No tutorial notebooks have been added yet. 
+No tutorial notebooks have been added yet.
 
 ## Each Code File
 

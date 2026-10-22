@@ -10,7 +10,7 @@ Describe the problem, resulting behavior, and linked task/issue.
 
 ## Review
 
-Agent-assisted implementation: Hermes orchestration / Codex coding where used.
+Agent assistance used (if any), and what was independently verified:
 Commit author identity reflects the user's requested attribution; authentication,
 pusher identity, and signature status are independent. Human review and manual
 merge required. No agent may bypass branch protection or enable auto-merge.

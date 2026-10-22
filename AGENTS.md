@@ -1,29 +1,11 @@
-# Research agents
+# Research contributions
 
-Hermes owns task state, scheduling, retry limits, and Discord delivery. Use its
-native Kanban tools; do not build another scheduler or dispatcher.
+Read README.md and docs/weekly-tracker.md before work. Keep changes within the assigned research task.
 
-Read the assigned card and `docs/weekly-tracker.md`. Only implement its stated
-scope. Each research card must specify a hypothesis, dependencies, acceptance
-checks, artifacts, seed/config manifest, compute allowance, and stop condition.
-Never fabricate results, mark missing runs successful, tune on held-out starts,
-or silently change the frozen model. Keep failed runs and negative findings.
+Each research task should state its hypothesis, dependencies, acceptance checks, artifacts, seed/config manifest, compute allowance and stop condition. Never fabricate results, mark missing runs successful, tune on held-out starts or silently change the frozen model. Preserve failed runs and negative findings.
 
-Use one `agent/<task-id>` branch and a preserved Git worktree per coding card.
-Before edits, check the current branch and status. Never work on main, merge,
-force-push, rewrite shared history, or change repository security settings.
-Make a meaningful commit after each tested milestone, not empty/time-based
-commits. In the worker, verify local Git author name/email against the nonsecret
-verified identity copy at `/opt/data/author-identity.json`;
-stop if missing. Authorship is the user's requested identity; describe Hermes
-and Codex assistance truthfully in PRs and task logs.
+Use an isolated agent branch/worktree for agent-assisted changes. Run relevant research tests and record actual commands/results, including failures and checks not run. Make meaningful commits after tested milestones. Use the verified human-approved author identity and disclose agent assistance truthfully; author identity is separate from authentication, pusher and signing.
 
-Run relevant tests and record commands/results. Follow README code headers and
-navigation requirements. Leave artifacts plus a review handoff, including commit
-SHA, changed paths, checks, costs/usage, remaining uncertainty, and PR URL when
-available. Workers have no GitHub publishing credential: request host publishing.
-Call `kanban_request_review` for a human review; never self-approve. The human
-merges through GitHub after required checks. Block for missing credentials,
-budget, scientific decisions, or security changes. Do not repeatedly retry a
-blocked task. Use heartbeat/comments for milestones; Hermes delivers concise
-Discord progress and HITL questions. Never put credentials in cards or logs.
+Leave a human-review handoff with commit SHA, changed paths, checks, artifacts, usage/cost and remaining uncertainty. Never self-approve, merge, force-push, rewrite shared history, bypass branch protection or change repository security. Block for missing scientific decisions, credentials or approved compute budget.
+
+Orchestration, deployment, platform credentials, agent-home configuration and infrastructure diagnostics are maintained outside this repository. Do not add them to research changes. Keep reusable research code, experiment configuration, tests and reproducibility documentation here.

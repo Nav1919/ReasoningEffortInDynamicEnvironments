@@ -1,5 +1,0 @@
-# Build the unmodified upstream Hermes image at the recorded SHA first.
-FROM hermes-research-base:4e58c721
-# Reuse upstream's Node/npm runtime; keep Codex in its own install prefix.
-RUN npm install --global --prefix /opt/codex @openai/codex@0.163.0 && \
-    ln -s /opt/codex/bin/codex /usr/local/bin/codex

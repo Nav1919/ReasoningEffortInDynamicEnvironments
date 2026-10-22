@@ -1,6 +1,0 @@
-# Inactive: use only after explicit approval, together with ../compose.yaml.
-# Set RESEARCH_WORKER_SECCOMP to the absolute path of the vendored profile.
-services:
-  worker:
-    security_opt:
-      - "seccomp=${RESEARCH_WORKER_SECCOMP:?Set the absolute path to the reviewed seccomp profile}"
