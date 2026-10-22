@@ -88,6 +88,7 @@ def prepare():
         raise ValueError("Runtime already exists; inspect it rather than overwriting")
     for p in targets[:-1]:
         p.mkdir(parents=True)
+    (state / "worker/author-identity.json").write_text(json.dumps(record, indent=2) + "\n")
     for role in ("controller", "worker"):
         config = (ROOT / "automation" / f"{role}.json").read_text()
         (state / role / "config.yaml").write_text(config)

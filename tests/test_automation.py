@@ -81,6 +81,7 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(original_git("remote", "get-url", "origin", cwd=clone),
                          "https://github.com/" + manage.REPO + ".git")
         self.assertTrue((self.root / ".runtime/worker/profiles/coder/config.yaml").is_file())
+        self.assertEqual(json.loads((self.root / ".runtime/worker/author-identity.json").read_text())["login"], "Nav1919")
         self.assertFalse((self.root / ".runtime/worker/.env").exists())
 
     def test_publish_main_refused_before_credential_access(self):

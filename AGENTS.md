@@ -13,7 +13,8 @@ Use one `agent/<task-id>` branch and a preserved Git worktree per coding card.
 Before edits, check the current branch and status. Never work on main, merge,
 force-push, rewrite shared history, or change repository security settings.
 Make a meaningful commit after each tested milestone, not empty/time-based
-commits. Verify author name/email against the host's verified identity record;
+commits. In the worker, verify local Git author name/email against the nonsecret
+verified identity copy at `/opt/data/author-identity.json`;
 stop if missing. Authorship is the user's requested identity; describe Hermes
 and Codex assistance truthfully in PRs and task logs.
 

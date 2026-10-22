@@ -87,10 +87,13 @@ cryptographically Verified signature or a human-only implementation. Commit
 messages/PR descriptions disclose agent assistance. Branch commits may not count
 on the contribution graph until human merge to the default branch.
 
-An active `Protect main` ruleset was observed through GitHub's read API. Classic
-branch protection returned 404; no protection settings were changed. Human
-review should inspect required checks and bypass actors before unattended use.
-The CI workflow adds tests; it does not make them required or alter rulesets.
+An active `Protect main` ruleset was observed through GitHub's read API. Effective
+rules require one approving review, dismissal of stale approvals, resolved
+review threads, and protection against deletion/force-push. No required status
+check context was returned. Classic branch protection returned 404; no protection
+settings were changed. The CI workflow adds tests; making `automation-tests`
+mandatory is a separate owner-approved security change. Until then the human
+reviewer must check its result before merging.
 
 ## Prepare and build
 
@@ -138,6 +141,7 @@ Initialize the board before the worker, then enable the native runtime in a
 docker compose -f automation/compose.yaml run --rm controller kanban boards create research --default-workdir /workspace/repo
 docker compose -f automation/compose.yaml run --rm worker -p coder
 # Inside this dedicated Hermes session:
+# /model (select an available OpenAI Codex coding model)
 # /codex-runtime codex_app_server
 ```
 
@@ -165,6 +169,10 @@ Use human review, host publishing and GitHub CI as distinct evidence gates.
 
 The first coding card should confirm a tiny file edit, meaningful test and
 commit, then enter human review. Verify its author on GitHub after host publish.
+Use research cards only after the setup PR has been reviewed and the operator
+has selected the approved base revision; preparation clones the current branch.
+Create worktrees inside the Linux container so their Git metadata uses container
+paths, rather than Windows host paths.
 For the research card, record the hypothesis, dependency versions, seed/config,
 data paths, expected artifacts and experiment allowance. Do not blindly assign
 all unchecked weekly tasks or assume calendar dates imply completed research.
@@ -216,7 +224,9 @@ never erase `.runtime` as a restart strategy. Rotate any exposed credential.
 October 21, 2026: offline identity/branch/isolation and real temporary-Git
 integration tests pass (12 tests); Compose configuration parses. The initial
 Windows sandbox refused temporary Git repositories; rerun outside that sandbox
-passed. Desktop Codex login was verified. Docker was initially stopped and was
+passed. Draft PR #32 was published and GitHub associated every new commit with
+Nav1919; both push and PR CI runs passed on head `62da0e9`. Desktop Codex login
+was verified. Docker was initially stopped and was
 started for build validation. Container build/runtime, sandbox smoke test,
 Discord round-trip, cron delivery and restart persistence require separate
 evidence; see the PR for the observed build outcome. No changes were merged.
