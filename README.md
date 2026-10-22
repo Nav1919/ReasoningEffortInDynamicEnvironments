@@ -23,7 +23,7 @@ The repository contains the research plan and an agent automation setup. Researc
 | `docs/related-works.md` | Paper summaries and annotation links | Available |
 | `docs/weekly-tracker.md` | 11-week task plan, check-ins, and result log | Available |
 | `docs/automation.md` | Hermes/Codex setup, credential boundaries, budgets, validation and remaining actions | Available |
-| `automation/manage.py` | Host-only identity verification, isolated runtime preparation and draft PR publishing; run `python automation/manage.py --help`; tested by `tests/test_automation.py` | Available |
+| `automation/manage.py` | Host-only identity verification, disk/Docker preflight, isolated runtime preparation and draft PR publishing; run `python automation/manage.py --help`; tested by `tests/test_automation.py` | Available |
 | `automation/` | Native Hermes profiles, Codex sandbox configuration, two-container deployment and research task templates | Available; runtime validation pending |
 | `tests/test_automation.py` | Offline automation checks; run `python -m unittest discover -s tests -v` | Available |
 | Research code and notebooks | Add paths and descriptions as they are created | Not yet available |

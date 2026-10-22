@@ -103,6 +103,7 @@ runtime. It copies **no credentials** and starts no services.
 
 ```bash
 python automation/manage.py prepare
+python automation/manage.py preflight
 docker build -t hermes-research-base:4e58c721 'https://github.com/NousResearch/hermes-agent.git#4e58c721c8cf9b51c46636ea84ea6a5cb540880a'
 docker compose -f automation/compose.yaml build worker
 docker compose -f automation/compose.yaml config --quiet
@@ -222,14 +223,39 @@ never erase `.runtime` as a restart strategy. Rotate any exposed credential.
 ## Validation record
 
 October 21, 2026: offline identity/branch/isolation and real temporary-Git
-integration tests pass (12 tests); Compose configuration parses. The initial
+integration tests pass (14 tests, including disk preflight guards); Compose configuration parses. The initial
 Windows sandbox refused temporary Git repositories; rerun outside that sandbox
 passed. Draft PR #32 was published and GitHub associated every new commit with
 Nav1919; both push and PR CI runs passed on head `62da0e9`. Desktop Codex login
 was verified. Docker was initially stopped and was
-started for build validation. Container build/runtime, sandbox smoke test,
-Discord round-trip, cron delivery and restart persistence require separate
-evidence; see the PR for the observed build outcome. No changes were merged.
+started for build validation. A remote Git build stalled; an archive of the exact
+same upstream commit then completed dependency installation and compilation.
+Image extraction failed with **read-only file system** in Docker's internal
+snapshot store; a subsequent read also returned **input/output error** and the
+worker build could not write Docker's metadata DB. The image is not usable.
+No Docker data was reset/pruned and no daemon security settings were changed.
+The host C: drive had reached zero free bytes. Removing only this task's
+temporary upstream source checkout/archive recovered about 0.6 GB. Existing
+Docker images, volumes and caches were preserved. The added `preflight` command
+blocks a new build below 20 GiB free; check Docker's VM allocation too. Do not
+rebuild on the current low-space drive.
+
+Remaining operator actions, in order:
+
+1. Restore at least 20 GiB of host disk headroom, then diagnose/repair Docker
+   Desktop storage using its supported diagnostics;
+   preserve existing images/volumes before any reset. Rebuild until image
+   inspection and a one-shot Hermes CLI command both succeed.
+2. Finish the dedicated controller/provider, Discord and container Codex logins
+   above. Select the available coding model and register the native callback.
+3. Verify nested sandbox behavior, one research worktree/commit/review handoff,
+   Discord progress plus HITL reply, cron delivery and restart persistence.
+4. Approve the experiment manifest/model and provider-enforced spend allowance
+   before paid experiments. Require CI by policy only with owner consent.
+
+No persistent agents, cron schedule or Discord delivery are claimed active.
+No changes were merged. Container runtime, sandbox smoke test, Discord
+round-trip, cron delivery and restart persistence remain unverified.
 
 Run checks: `python -m unittest discover -s tests -v` and
 `docker compose -f automation/compose.yaml config --quiet`.

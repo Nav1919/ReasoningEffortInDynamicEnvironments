@@ -97,6 +97,19 @@ class IntegrationTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_low_disk_blocks_build_before_contacting_docker(self):
+        with patch.object(manage.shutil, "disk_usage") as usage, patch.object(manage.subprocess, "run") as run:
+            usage.return_value.free = 1024 ** 3
+            with self.assertRaisesRegex(ValueError, "Build blocked"):
+                manage.preflight()
+            run.assert_not_called()
+
+    def test_disk_and_docker_preflight(self):
+        with patch.object(manage.shutil, "disk_usage") as usage, patch.object(manage.subprocess, "run") as run:
+            usage.return_value.free = 30 * 1024 ** 3
+            manage.preflight()
+            run.assert_called_once()
+
     def test_native_caps_and_human_review(self):
         for role in ("controller", "worker"):
             config = json.loads((ROOT / "automation" / f"{role}.json").read_text())

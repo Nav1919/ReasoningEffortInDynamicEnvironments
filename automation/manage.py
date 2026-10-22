@@ -117,6 +117,15 @@ def agent_branch(branch):
     return branch
 
 
+def preflight():
+    # Large upstream image builds need headroom before Docker expands its VM disk.
+    free = shutil.disk_usage(ROOT).free
+    if free < 20 * 1024 ** 3:
+        raise ValueError(f"Build blocked: {free / 1024 ** 3:.1f} GiB free; reserve at least 20 GiB on the host and in Docker storage")
+    subprocess.run(["docker", "info"], check=True, capture_output=True, text=True)
+    print("Host disk headroom and Docker readiness checks passed. Also check Docker VM allocation before building.")
+
+
 def publish(branch, title, body_file, source=ROOT):
     agent_branch(branch)
     if not title.strip() or not body_file.is_file():
@@ -166,6 +175,7 @@ def main():
     ident.add_argument("--login", required=True)
     ident.add_argument("--email")
     commands.add_parser("prepare")
+    commands.add_parser("preflight")
     pub = commands.add_parser("publish")
     pub.add_argument("--branch", required=True)
     pub.add_argument("--title", required=True)
@@ -177,6 +187,8 @@ def main():
             identity(args.login, args.email)
         elif args.command == "prepare":
             prepare()
+        elif args.command == "preflight":
+            preflight()
         else:
             publish(args.branch, args.title, args.body_file, args.source.resolve())
     except urllib.error.HTTPError as error:
