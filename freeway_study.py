@@ -490,16 +490,45 @@ def summarize(folder):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['build','smoke','diagnostics','live','all','summarize'])
+    parser.add_argument('mode', choices=['build','smoke','diagnostics','live','all','summarize','plan','execute'])
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--config', type=Path)
+    parser.add_argument('--limit', type=int, default=1)
+    parser.add_argument('--attempt', type=int, default=1)
+    parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
     folder = args.output.resolve()
     folder.mkdir(parents=True, exist_ok=True)
+    if args.mode == 'execute':
+        from comparison_execution import execute_plan
+        if args.dry_run:
+            parser.error('Use plan --dry-run before execution')
+        result = execute_plan(folder, args.limit)
+        if result['status'] not in ('complete','partial'):
+            raise RuntimeError(f"Execution {result['status']}; inspect {folder/'execution.json'}")
+        return
+    if args.mode == 'plan':
+        from comparison_plan import build_plan
+        from experiment_config import load_config
+        if not args.config:
+            parser.error('plan requires --config')
+        plan = build_plan(load_config(args.config), args.attempt)
+        path = folder/'plan.json'
+        with path.open('x') as stream:
+            json.dump(plan, stream, indent=2, default=convert_scalar)
+        print(f"Saved {len(plan['runs'])} planned runs to {path}; no model calls")
+        return
+    if args.dry_run:
+        parser.error('--dry-run is supported only with plan')
     if args.mode == 'build':
         write_json(folder/'situations.json', build_situations())
         return
     if args.mode == 'summarize':
-        summarize(folder)
+        if (folder/'plan.json').exists():
+            from comparison_metrics import write_comparison_summary
+            write_comparison_summary(folder)
+        else:
+            summarize(folder)
         return
     if not (folder/'metadata.json').exists():
         capture_metadata(folder)
