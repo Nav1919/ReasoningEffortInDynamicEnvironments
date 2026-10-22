@@ -228,107 +228,99 @@ stopped for auth/quota failures; fix the cause before manually unblocking.
 Back up board SQLite with services stopped plus the preserved worktrees;
 never erase `.runtime` as a restart strategy. Rotate any exposed credential.
 
-## Validation record
+## Verified state — October 22, 2026
 
-October 21, 2026: offline identity/branch/isolation and real temporary-Git
-integration tests pass (14 tests, including disk preflight guards); Compose configuration parses. The initial
-Windows sandbox refused temporary Git repositories; rerun outside that sandbox
-passed. Draft PR #32 was published and GitHub associated every new commit with
-Nav1919; both push and PR CI runs passed on head `62da0e9`. Desktop Codex login
-was verified. Docker was initially stopped and was
-started for build validation. A remote Git build stalled; an archive of the exact
-same upstream commit then completed dependency installation and compilation.
-Image extraction failed with **read-only file system** in Docker's internal
-snapshot store; a subsequent read also returned **input/output error** and the
-worker build could not write Docker's metadata DB. The image was initially unusable.
-No Docker data was reset/pruned and no daemon security settings were changed.
-The host C: drive had reached zero free bytes. Removing only this task's
-temporary upstream source checkout/archive recovered about 0.6 GB. Existing
-Docker images, volumes and caches were preserved. The added `preflight` command
-blocks a new build below 20 GiB free; check Docker's VM allocation too. Do not
-rebuild on the current low-space drive.
+The pinned Hermes image and Codex 0.163.0 worker image both run. Image manifests:
+Hermes `sha256:94802ccb76578df0e897289dd581578973a2d7ecafdbf6371044fd8af83942ef`;
+worker `sha256:4d6347e8ee170d12fc564469c02985b79d1a89d5c34e21a561ccda34d216712b`.
+The initial disk-full Docker failure recovered after explicitly approved installer
+cleanup and R/RStudio removal. Existing Docker data and user projects were retained.
+Two identified task build-cache records were removed. About 12 GiB host space
+remains; the 20 GiB guard still blocks new builds. No rebuild is currently needed.
 
-### Subsequent recovery and container smoke checks
+The default Docker filter prevented Bubblewrap namespace creation. The user
+explicitly approved one-off tests of the worker-only pinned OpenAI syscall
+profile. With that override, the actual no-model test passed as UID 10000:
+workspace writes succeeded; home writes, Git metadata writes, and IP socket
+creation were denied. No privileged mode, capabilities, host settings or controller
+policy changed. Persistent use of this security override still needs approval.
 
-Following user-approved installer cleanup and R/RStudio uninstallation, Docker
-recovered without resetting its data or changing security settings. The Hermes
-image became inspectable and its CLI ran successfully. Two specifically
-identified temporary cache records from this task were removed (1.101 GB
-logical cache); existing images and volumes were retained.
+A dedicated worker Codex device login succeeded. Native Hermes then imported
+only that dedicated login into its own worker provider session. No desktop
+credential or personal plugin was copied. The available coding model selected
+through native Hermes is `gpt-6.1-sol`, low reasoning; this does not select the
+scientific experiment model. Several bounded authenticated coding diagnostic
+turns ran; no research experiments were executed.
 
-The Codex worker image built successfully and reported `codex-cli 0.163.0`.
-Hermes recognized the dedicated `coder` profile, and the `research` board was
-initialized under `/board/kanban/boards/research/kanban.db`. Both services use
-Compose `init: true` so the direct nonroot entrypoint has a process reaper.
+Windows bind ownership caused native Hermes and Git ownership checks to fail.
+`automation/compose.windows.yaml` instead uses four Linux-owned external named
+volumes. `automation/seed_linux_state.py` seeds only this task's prepared homes,
+board and bundled tracked Git history, as UID 10000 with no added capabilities.
+Existing Windows state remains a backup. Completed seeds are idempotent; the
+seed command does not synchronize subsequent code or credential changes. The
+volumes are external so Compose teardown does not delete them.
 
-The actual no-model sandbox test failed before executing the test program:
-`bwrap: No permissions to create a new namespace`. Workspace-write shell
-execution in this container is therefore **blocked**, not verified safe or
-ready for coding. No privileged mode, seccomp relaxation, sysctl or sandbox
-bypass was applied. A compatible host/runtime or an explicitly approved,
-reviewed namespace configuration is required before retrying. No model calls
-or research experiments were made.
-
-Docker unpacking/snapshotting consumed substantial space even for the worker
-layer; the 20 GiB build guard remains in place for future builds. The final
-observed host headroom was about 3.4 GiB. No further builds should run at that
-headroom. User projects, scripts and data were preserved during app removal.
-
-Remaining operator actions, in order:
-
-1. Restore at least 20 GiB of host disk headroom before additional builds.
-   Docker and the two images now work; no reset/rebuild is currently needed.
-   Resolve the namespace restriction through a compatible runtime or an
-   explicitly approved security configuration. Do not disable the sandbox.
-2. Finish the dedicated controller/provider, Discord and container Codex logins
-   above. Select the available coding model and register the native callback.
-3. Verify nested sandbox behavior, one research worktree/commit/review handoff,
-   Discord progress plus HITL reply, cron delivery and restart persistence.
-4. Approve the experiment manifest/model and provider-enforced spend allowance
-   before paid experiments. Require CI by policy only with owner consent.
-
-No persistent agents, cron schedule or Discord delivery are claimed active.
-No changes were merged. Container CLI checks passed; the sandbox smoke test
-failed. Discord round-trip, cron delivery and restart persistence remain unverified.
-
-Run checks: `python -m unittest discover -s tests -v` and
-`docker compose -f automation/compose.yaml config --quiet`.
-
-### Namespace diagnosis and pending approval
-
-The worker reports no effective Linux capabilities, no-new-privileges enabled,
-and Docker's built-in seccomp filter active. The kernel has a nonzero user
-namespace limit; this supports a container syscall-filter restriction rather
-than a conclusion that the kernel has no namespace support. Dedicated Codex
-login status is `Not logged in`; no controller provider/Discord credential was
-available. No desktop login or personal plugins were copied.
-
-Native `codex-runtime migrate` completed successfully for `coder`, registered
-only `hermes-tools`, and preserved `sandbox_mode=workspace-write` and
-`network_access=false`. This proves registration, not authenticated model/tool
-execution. The research board diagnostics reported no active issues.
-
-`automation/security-proposal/` contains an **inactive**, unmodified OpenAI
-Codex Security seccomp profile pinned to source commit
-`17c04c09e5896d9bbf1e1ea1b7c29622c7b14c64`. Its license and file checksums are
-included. A worker-only Compose override is prepared, with no host/daemon
-changes, added capabilities, controller changes, or sandbox bypass. It allows
-additional namespace/mount syscalls, so it requires explicit user approval
-before even a one-shot runtime test. The proposal and combined Compose config
-validate offline; neither has been applied.
-
-The repeatable smoke runner preserves the child process's failing status and
-produces JSON evidence. Against the unchanged baseline it exits 1 with the
-Bubblewrap namespace error. After approval, use this same command with the
-additional proposed Compose override; no model credentials are needed:
+On Windows, add `-f automation/compose.windows.yaml` to every runtime command
+above after this one-time seed:
 
 ```powershell
-$smokeSource = (Resolve-Path automation/sandbox_smoke.py).Path
-docker compose -f automation/compose.yaml run --rm --volume "${smokeSource}:/smoke/sandbox_smoke.py:ro" --entrypoint /opt/hermes/.venv/bin/python worker /smoke/sandbox_smoke.py
+python automation/seed_linux_state.py
 ```
 
-The smoke runner first proves the worker home is writable outside the sandbox.
-Inside it, repository writes must succeed while worker-home writes, Git metadata
-writes and IP socket creation must fail. Failure prevents activation. The
-offline suite additionally covers smoke failure propagation, root refusal,
-and upstream profile integrity (17 total tests).
+The native callback was registered, but Codex deferred tool discovery and did
+not forward board-routing variables. A small post-migration adapter fixes these
+integration details; it does not schedule tasks. It exposes only Hermes's MCP
+namespace directly and forwards only `HERMES_KANBAN_HOME` and
+`HERMES_KANBAN_BOARD`. The user separately approved unattended reads through
+`kanban_list` and `kanban_show`; no mutation tools are auto-approved. Reapply this
+adapter after every native migration, only after equivalent operator approval:
+
+```powershell
+$helper = (Resolve-Path automation/configure_worker.py).Path
+docker compose -f automation/compose.yaml -f automation/compose.windows.yaml run --rm --volume "${helper}:/smoke/configure_worker.py:ro" --entrypoint /opt/hermes/.venv/bin/python worker /smoke/configure_worker.py
+```
+
+Account app connectors appeared in the dedicated Codex tool catalog after the
+ChatGPT login; no connected app data was read. Worker `features.apps=false`
+disables them. The app-server metadata now confirms only `hermes-tools` remains exposed.
+An actual authenticated `kanban_list` returned zero tasks from the shared
+research board. The worker profile explicitly enables only the Kanban Hermes
+toolset. Native Hermes may expose additional callback tool definitions; mutation
+approval remains required, and sandbox restrictions do not cover MCP operations.
+
+For an approved one-off sandbox test on Windows:
+
+```powershell
+$env:RESEARCH_WORKER_SECCOMP = (Resolve-Path automation/security-proposal/codex-security-seccomp.json).Path
+$smokeSource = (Resolve-Path automation/sandbox_smoke.py).Path
+docker compose -f automation/compose.yaml -f automation/compose.windows.yaml -f automation/security-proposal/compose.namespace.yaml run --rm --volume "${smokeSource}:/smoke/sandbox_smoke.py:ro" --entrypoint /opt/hermes/.venv/bin/python worker /smoke/sandbox_smoke.py
+```
+
+GitHub author association on prior pushed setup commits was verified as Nav1919.
+Draft PR #32 remains unmerged. Offline tests cover identity, clean agent-branch
+publishing, preparation, disk guards, callback permissions and sandbox failure
+propagation; CI checks the baseline Compose file. Linux-volume seeding and actual
+sandbox behavior have additional manual runtime evidence.
+
+## Remaining activation gates
+
+1. Finish Discord bot setup. A separate native controller OAuth login succeeded;
+   no worker credential was copied. Verify the selected controller provider/model
+   through one bounded board-read turn before starting its gateway.
+2. Approve persistent use of the tested worker syscall profile before services
+   are started. Decide the minimal permitted Kanban mutation handoffs separately;
+   only two read tools currently have unattended approval.
+3. Complete one bounded card with a preserved agent worktree, tested edit, commit
+   and review handoff. Git metadata writes are currently blocked by the Codex
+   sandbox; a scoped commit handoff still needs implementation and verification.
+4. Implement a reviewed Git-bundle transfer from the Linux code volume back to
+   the host publisher. The existing `publish --source` path cannot directly read
+   a Docker named volume. Never give the worker the host GitHub token as a shortcut.
+5. Verify Discord progress/HITL round trip, native cron delivery and restart
+   persistence before claiming a persistent deployment.
+6. Select the scientific model/manifest and a provider-enforced spend allowance
+   before paid experiments. Any required-CI policy change needs owner consent.
+
+No persistent services, cron delivery or Discord delivery are claimed active.
+No changes were merged. The setup remains an integration in progress, not an
+unattended research deployment.

@@ -4,3 +4,6 @@ approval_policy = "never"
 
 [sandbox_workspace_write]
 network_access = false
+
+[features]
+apps = false

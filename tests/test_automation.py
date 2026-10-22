@@ -6,6 +6,7 @@ and deployment credential separation. No research/model calls are made.
 """
 import importlib.util
 import hashlib
+import errno
 import json
 from pathlib import Path
 import subprocess
@@ -21,6 +22,39 @@ smoke_spec = importlib.util.spec_from_file_location("smoke", ROOT / "automation/
 smoke = importlib.util.module_from_spec(smoke_spec)
 smoke_spec.loader.exec_module(smoke)
 USER = {"login": "Nav1919", "id": 75394407, "name": "Pranav Panicker"}
+worker_spec = importlib.util.spec_from_file_location("worker_config", ROOT / "automation/configure_worker.py")
+worker_config = importlib.util.module_from_spec(worker_spec)
+worker_spec.loader.exec_module(worker_config)
+
+
+class CallbackPolicyTests(unittest.TestCase):
+    def baseline(self):
+        return (ROOT / "automation/codex.toml").read_text() + '''
+# managed by hermes-agent
+[mcp_servers.hermes-tools]
+command = "python"
+# end hermes-agent managed section
+'''
+
+    def test_idempotent_read_policy_preserves_sandbox_and_routes_board(self):
+        import tomllib
+        result = worker_config.configure(self.baseline())
+        self.assertEqual(result, worker_config.configure(result))
+        config = tomllib.loads(result)
+        self.assertEqual(config["sandbox_mode"], "workspace-write")
+        self.assertFalse(config["sandbox_workspace_write"]["network_access"])
+        server = config["mcp_servers"]["hermes-tools"]
+        self.assertEqual(set(server["tools"]), {"kanban_list", "kanban_show"})
+        self.assertEqual(server["env_vars"], ["HERMES_KANBAN_HOME", "HERMES_KANBAN_BOARD"])
+        self.assertLess(result.index("[mcp_servers.hermes-tools.tools"), result.index(worker_config.END))
+
+    def test_relaxed_sandbox_refused(self):
+        with self.assertRaisesRegex(ValueError, "workspace sandbox"):
+            worker_config.configure(self.baseline().replace('"workspace-write"', '"danger-full-access"'))
+
+    def test_unregistered_callback_refused(self):
+        with self.assertRaisesRegex(ValueError, "migration first"):
+            worker_config.configure((ROOT / "automation/codex.toml").read_text())
 
 
 class IdentityTests(unittest.TestCase):
@@ -139,10 +173,27 @@ class ConfigurationTests(unittest.TestCase):
 
 
 class SandboxSmokeTests(unittest.TestCase):
+    def test_read_only_mount_is_a_denied_write(self):
+        with patch.object(smoke.os, "open", side_effect=OSError(errno.EROFS, "Read-only file system")):
+            smoke.denied_write(Path("/opt/data"))
+
+    def test_missing_path_is_not_mistaken_for_denied_write(self):
+        with patch.object(smoke.os, "open", side_effect=FileNotFoundError(errno.ENOENT, "Missing path")):
+            with self.assertRaises(FileNotFoundError):
+                smoke.denied_write(Path("/missing"))
+
+    def test_unexpected_write_is_removed_and_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            with self.assertRaises(AssertionError):
+                smoke.denied_write(directory)
+            self.assertEqual(list(directory.iterdir()), [])
+
     def test_namespace_failure_is_not_reported_as_success(self):
         failure = subprocess.CompletedProcess([], 1, "", "bwrap: No permissions to create a new namespace")
-        with patch.object(smoke.os, "geteuid", return_value=10000, create=True), patch.object(smoke.tempfile, "NamedTemporaryFile"), patch.object(smoke.subprocess, "run", return_value=failure):
+        with patch.object(smoke.os, "geteuid", return_value=10000, create=True), patch.object(smoke.tempfile, "NamedTemporaryFile"), patch.object(smoke.subprocess, "run", return_value=failure) as command:
             self.assertEqual(smoke.main(), 1)
+            self.assertEqual(command.call_args.args[0][:3], ["/usr/local/bin/codex", "sandbox", "--"])
 
     def test_root_execution_refused(self):
         with patch.object(smoke.os, "geteuid", return_value=0, create=True):

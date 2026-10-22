@@ -20,7 +20,10 @@ alone may be insufficient on hosts with additional AppArmor restrictions; stop
 on failure and review the evidence rather than silently relaxing another layer.
 
 The original user instruction forbids security changes without consent. This
-proposal has **not** been applied. With explicit approval, first run only an
+profile was explicitly approved for one-off tests on October 22, 2026. The first
+unauthenticated sandbox test passed, followed by bounded authenticated worker
+diagnostics. Persistent activation has not been approved. For a new installation,
+obtain explicit approval and first run only an
 unauthenticated one-shot sandbox smoke test, then enable for the worker only
 if workspace writes pass and outside-workspace/Git metadata/network operations
 are denied. Keep model credentials out until that test passes.

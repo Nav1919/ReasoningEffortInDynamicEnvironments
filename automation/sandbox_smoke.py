@@ -8,6 +8,7 @@ JSON evidence and preserves a nonzero failure status. No credentials required.
 Tested by the manual Docker smoke command documented in docs/automation.md.
 """
 import json
+import errno
 import os
 from pathlib import Path
 import socket
@@ -21,8 +22,10 @@ def denied_write(directory):
     path = directory / (".research-sandbox-probe-" + uuid.uuid4().hex)
     try:
         descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    except PermissionError:
-        return
+    except OSError as error:
+        if error.errno in (errno.EACCES, errno.EPERM, errno.EROFS):
+            return
+        raise
     else:
         os.close(descriptor)
         path.unlink()
@@ -59,7 +62,7 @@ def main():
         raise AssertionError("Smoke test must run as the nonroot worker")
     with tempfile.NamedTemporaryFile(dir="/opt/data"):
         pass
-    result = subprocess.run(["/usr/local/bin/codex", "sandbox", "linux", "--",
+    result = subprocess.run(["/usr/local/bin/codex", "sandbox", "--",
         sys.executable, str(Path(__file__).resolve()), "--inside"],
         capture_output=True, text=True)
     print(json.dumps({"sandbox_exit": result.returncode,
