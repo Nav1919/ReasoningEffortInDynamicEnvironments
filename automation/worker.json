@@ -1,0 +1,11 @@
+{
+  "model": {"provider": "openai-codex", "openai_runtime": "codex_app_server", "codex_bin": "/usr/local/bin/codex"},
+  "agent": {"max_turns": 40, "run_budget_seconds": 1200},
+  "kanban": {
+    "dispatch_in_gateway": false, "dispatch_profiles": ["coder"],
+    "review_dispatch": false, "auto_decompose": false,
+    "auto_promote_children": false, "max_in_progress": 1,
+    "max_in_progress_per_profile": 1, "failure_limit": 1,
+    "notify_in_gateway": false
+  }
+}

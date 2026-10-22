@@ -1,0 +1,51 @@
+# Run from the repository: docker compose -f automation/compose.yaml ...
+# No host home, GitHub credentials, privileged mode, or Docker socket mounts.
+services:
+  controller:
+    image: hermes-research-base:4e58c721
+    restart: unless-stopped
+    mem_limit: 2g
+    cpus: 1
+    pids_limit: 256
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    user: "10000:10000"
+    entrypoint: ["/opt/hermes/.venv/bin/hermes"]
+    command: ["gateway", "run"]
+    environment:
+      HOME: /opt/data
+      HERMES_HOME: /opt/data
+      HERMES_KANBAN_HOME: /board
+      HERMES_KANBAN_BOARD: research
+    volumes:
+      - ../.runtime/controller:/opt/data
+      - ../.runtime/board:/board
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: research-codex-worker:0.163.0
+    restart: unless-stopped
+    init: true
+    mem_limit: 4g
+    cpus: 2
+    pids_limit: 256
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    user: "10000:10000"
+    entrypoint: ["/opt/hermes/.venv/bin/hermes"]
+    # Native dispatcher, separate home; no Discord adapter or credentials here.
+    command: ["kanban", "daemon", "--force", "--interval", "60", "--failure-limit", "1"]
+    working_dir: /workspace/repo
+    environment:
+      HOME: /opt/data
+      HERMES_HOME: /opt/data
+      CODEX_HOME: /opt/data/codex
+      HERMES_KANBAN_HOME: /board
+      HERMES_KANBAN_BOARD: research
+      GIT_TERMINAL_PROMPT: "0"
+      GIT_CONFIG_NOSYSTEM: "1"
+    volumes:
+      - ../.runtime/worker:/opt/data
+      - ../.runtime/board:/board
+      - ../.runtime/repo:/workspace/repo
