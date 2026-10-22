@@ -10,6 +10,7 @@ import errno
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -25,6 +26,51 @@ USER = {"login": "Nav1919", "id": 75394407, "name": "Pranav Panicker"}
 worker_spec = importlib.util.spec_from_file_location("worker_config", ROOT / "automation/configure_worker.py")
 worker_config = importlib.util.module_from_spec(worker_spec)
 worker_spec.loader.exec_module(worker_config)
+export_spec = importlib.util.spec_from_file_location("export_worker", ROOT / "automation/export_worker.py")
+export_worker = importlib.util.module_from_spec(export_spec)
+with patch.dict(sys.modules, {"manage": manage}):
+    export_spec.loader.exec_module(export_worker)
+
+
+class BundleHandoffTests(unittest.TestCase):
+    def test_export_refuses_main_and_outside_worktrees_before_docker(self):
+        with patch.object(export_worker.subprocess, "run") as run:
+            for branch, worktree in (("main", "/workspace/repo"),
+                                     ("agent/test", "/opt/data"),
+                                     ("agent/test", "/workspace/../opt/data")):
+                with self.assertRaises(ValueError):
+                    export_worker.export(branch, worktree)
+            run.assert_not_called()
+
+    def test_actual_bundle_preserves_commit_identity_and_refuses_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            source.mkdir()
+            manage.git("init", "-b", "main", cwd=source)
+            record = manage.author_for(USER, "Nav1919")
+            manage.git("config", "user.name", record["name"], cwd=source)
+            manage.git("config", "user.email", record["email"], cwd=source)
+            (source / "base.txt").write_text("base")
+            manage.git("add", "base.txt", cwd=source)
+            manage.git("commit", "-m", "Base", cwd=source)
+            manage.git("update-ref", "refs/remotes/origin/main", "HEAD", cwd=source)
+            manage.git("checkout", "-b", "agent/test", cwd=source)
+            (source / "result.txt").write_text("tested milestone")
+            manage.git("add", "result.txt", cwd=source)
+            manage.git("commit", "-m", "Milestone", cwd=source)
+            bundle = root / "worker.bundle"
+            manage.git("bundle", "create", str(bundle), "agent/test", "refs/remotes/origin/main", cwd=source)
+            destination = root / "handoff"
+            sha = export_worker.import_bundle(bundle, destination, "agent/test", record)
+            self.assertEqual(sha, manage.git("rev-parse", "HEAD", cwd=source))
+            self.assertEqual((destination / "result.txt").read_text(), "tested milestone")
+            self.assertEqual(manage.git("config", "user.email", cwd=destination), record["email"])
+            with self.assertRaisesRegex(ValueError, "already exists"):
+                export_worker.import_bundle(bundle, destination, "agent/test", record)
+            wrong = dict(record, email="unverified@example.com")
+            with self.assertRaisesRegex(ValueError, "authors do not match"):
+                export_worker.import_bundle(bundle, root / "wrong-author", "agent/test", wrong)
 
 
 class CallbackPolicyTests(unittest.TestCase):

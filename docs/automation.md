@@ -297,7 +297,9 @@ docker compose -f automation/compose.yaml -f automation/compose.windows.yaml -f 
 ```
 
 GitHub author association on prior pushed setup commits was verified as Nav1919.
-Draft PR #32 remains unmerged. Offline tests cover identity, clean agent-branch
+Draft PR #32 was found closed and unmerged; publishing created draft PR #36.
+Its head `fe7b563` passed both GitHub automation-test runs. The controller also
+passed a separate authenticated native board-read turn, returning zero tasks. Offline tests cover identity, clean agent-branch
 publishing, preparation, disk guards, callback permissions and sandbox failure
 propagation; CI checks the baseline Compose file. Linux-volume seeding and actual
 sandbox behavior have additional manual runtime evidence.
@@ -306,16 +308,15 @@ sandbox behavior have additional manual runtime evidence.
 
 1. Finish Discord bot setup. A separate native controller OAuth login succeeded;
    no worker credential was copied. Verify the selected controller provider/model
-   through one bounded board-read turn before starting its gateway.
+   through a bounded board-read turn before starting its gateway (passed).
 2. Approve persistent use of the tested worker syscall profile before services
    are started. Decide the minimal permitted Kanban mutation handoffs separately;
    only two read tools currently have unattended approval.
 3. Complete one bounded card with a preserved agent worktree, tested edit, commit
    and review handoff. Git metadata writes are currently blocked by the Codex
    sandbox; a scoped commit handoff still needs implementation and verification.
-4. Implement a reviewed Git-bundle transfer from the Linux code volume back to
-   the host publisher. The existing `publish --source` path cannot directly read
-   a Docker named volume. Never give the worker the host GitHub token as a shortcut.
+4. Use the verified Git-bundle transfer below for host publishing. Never give
+   the worker the host GitHub token as a shortcut.
 5. Verify Discord progress/HITL round trip, native cron delivery and restart
    persistence before claiming a persistent deployment.
 6. Select the scientific model/manifest and a provider-enforced spend allowance
@@ -324,3 +325,42 @@ sandbox behavior have additional manual runtime evidence.
 No persistent services, cron delivery or Discord delivery are claimed active.
 No changes were merged. The setup remains an integration in progress, not an
 unattended research deployment.
+
+## Linux worker publishing handoff
+
+With workers stopped, export the explicit clean agent branch and its actual
+container worktree path:
+
+```powershell
+python automation/export_worker.py --branch agent/task-id --worktree /workspace/repo/.worktrees/task-id
+python automation/manage.py publish --branch agent/task-id --source .runtime/handoffs/task-id/repo --title "Concrete milestone" --body-file review.md
+```
+
+The exporter mounts only the code volume read-only and a new handoff output
+folder writable. It runs nonroot with no network, capabilities or credentials.
+A native Git bundle carries tracked history to a fresh host checkout; no worker
+Git config, hooks or runtime homes are copied. Host-side author checks and the
+existing draft publisher remain mandatory. Refusal preserves partial output for
+inspection; choose a new task/milestone directory rather than overwriting it.
+The current implementation reserves one output directory per task ID; for later
+milestones preserve/archive that task's previous handoff before exporting again.
+
+The real Docker export reconstructed clean commit `41890fd` from the worker
+volume and verified its author identity. A separate offline test checks actual
+bundle creation/import, commit identity, wrong-author refusal and overwrite
+refusal. This proves committed-history transport, not automatic worker commits.
+
+## Inactive coding-permission proposal
+
+`automation/security-proposal/coding-permissions.toml` extends Codex's native
+`:workspace` permission profile to permit writes only to the isolated clone's
+`/workspace/repo/.git` metadata, with shell network still disabled. This permits
+local commits/worktrees; it cannot enforce branch names inside the clone, so the
+host publisher still rejects main and wrong authors. It does not grant worker
+home writes or host access. No permission profile has been activated.
+
+Four additional proposed callback approvals cover heartbeat, comment, block and
+request-review. Complete, unblock, task creation and review decisions remain
+unapproved. MCP operations execute outside the shell sandbox; board mutation is
+an explicit additional authority, scoped by available tool names rather than
+by card ownership. The proposal needs consent before application or testing.
