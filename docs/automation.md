@@ -392,9 +392,13 @@ The retained journal's failed operation was `session.sidecars`, patch key
 permission_denied` during persistence and token-accounting flush. Storage had
 ample VM space and correct nonroot ownership. This narrows the issue to the
 managed session persistence path; it does not prove which upstream ownership
-check rejected it. No check was disabled or patched. Existing upstream pytest
-regressions could not run because pytest is absent from the pinned runtime;
-no package was installed to hide that limitation.
+check rejected it. No check was disabled or patched. Pytest was initially absent from the pinned runtime. Test wheels were later
+downloaded to task scratch and unpacked only inside disposable `/tmp` storage:
+three unmodified upstream proxy/managed-worker persistence regressions passed.
+An exploratory fixture variant using a fake Codex turn failed with
+`invalid_params`; that differs from the real card failure and is not yet a
+validated reproduction or root-cause proof. No persistent image or credential
+configuration was changed by those offline checks.
 
 The one-pass dispatcher and its child PIDs must be inspected/reaped from the
 **same container process namespace**. A separate `compose run` can read shared
