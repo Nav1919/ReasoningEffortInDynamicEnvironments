@@ -214,7 +214,7 @@ never erase `.runtime` as a restart strategy. Rotate any exposed credential.
 ## Validation record
 
 October 21, 2026: offline identity/branch/isolation and real temporary-Git
-integration tests pass (10 tests); Compose configuration parses. The initial
+integration tests pass (12 tests); Compose configuration parses. The initial
 Windows sandbox refused temporary Git repositories; rerun outside that sandbox
 passed. Desktop Codex login was verified. Docker was initially stopped and was
 started for build validation. Container build/runtime, sandbox smoke test,
