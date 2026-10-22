@@ -26,6 +26,8 @@ The repository contains the research plan and an agent automation setup. Researc
 | `automation/manage.py` | Host-only identity verification, disk/Docker preflight, isolated runtime preparation and draft PR publishing; run `python automation/manage.py --help`; tested by `tests/test_automation.py` | Available |
 | `automation/` | Native Hermes profiles, Codex sandbox configuration, two-container deployment and research task templates | Available; runtime validation pending |
 | `tests/test_automation.py` | Offline automation checks; run `python -m unittest discover -s tests -v` | Available |
+| `automation/sandbox_smoke.py` | No-model container test of workspace writes and denied home/Git/network access; run using the mount command in `docs/automation.md`; failure propagation tested by `tests/test_automation.py` | Available; baseline namespace restriction confirmed |
+| `automation/security-proposal/` | Pinned OpenAI syscall profile and inactive worker override requiring explicit security approval | Proposed; not applied |
 | Research code and notebooks | Add paths and descriptions as they are created | Not yet available |
 
 @Team Members: When adding code, list **each runnable code file** here with its purpose, usage, and unit-test link. Keep notebook entries here too, including prerequisites and the order in which to run them.

@@ -152,6 +152,14 @@ does not perform this registration. Review its generated config; retain
 workspace-write and disabled shell network. Test the actual sandbox before
 launching a coding card. Do not copy personal plugins/MCP servers.
 
+The native noninteractive equivalent for registration (without toggling the
+already configured runtime) is also available:
+
+```bash
+docker compose -f automation/compose.yaml run --rm worker -p coder codex-runtime migrate --dry-run --json
+docker compose -f automation/compose.yaml run --rm worker -p coder codex-runtime migrate --json
+```
+
 ## Smoke check, research cards and Discord
 
 ```bash
@@ -285,3 +293,42 @@ failed. Discord round-trip, cron delivery and restart persistence remain unverif
 
 Run checks: `python -m unittest discover -s tests -v` and
 `docker compose -f automation/compose.yaml config --quiet`.
+
+### Namespace diagnosis and pending approval
+
+The worker reports no effective Linux capabilities, no-new-privileges enabled,
+and Docker's built-in seccomp filter active. The kernel has a nonzero user
+namespace limit; this supports a container syscall-filter restriction rather
+than a conclusion that the kernel has no namespace support. Dedicated Codex
+login status is `Not logged in`; no controller provider/Discord credential was
+available. No desktop login or personal plugins were copied.
+
+Native `codex-runtime migrate` completed successfully for `coder`, registered
+only `hermes-tools`, and preserved `sandbox_mode=workspace-write` and
+`network_access=false`. This proves registration, not authenticated model/tool
+execution. The research board diagnostics reported no active issues.
+
+`automation/security-proposal/` contains an **inactive**, unmodified OpenAI
+Codex Security seccomp profile pinned to source commit
+`17c04c09e5896d9bbf1e1ea1b7c29622c7b14c64`. Its license and file checksums are
+included. A worker-only Compose override is prepared, with no host/daemon
+changes, added capabilities, controller changes, or sandbox bypass. It allows
+additional namespace/mount syscalls, so it requires explicit user approval
+before even a one-shot runtime test. The proposal and combined Compose config
+validate offline; neither has been applied.
+
+The repeatable smoke runner preserves the child process's failing status and
+produces JSON evidence. Against the unchanged baseline it exits 1 with the
+Bubblewrap namespace error. After approval, use this same command with the
+additional proposed Compose override; no model credentials are needed:
+
+```powershell
+$smokeSource = (Resolve-Path automation/sandbox_smoke.py).Path
+docker compose -f automation/compose.yaml run --rm --volume "${smokeSource}:/smoke/sandbox_smoke.py:ro" --entrypoint /opt/hermes/.venv/bin/python worker /smoke/sandbox_smoke.py
+```
+
+The smoke runner first proves the worker home is writable outside the sandbox.
+Inside it, repository writes must succeed while worker-home writes, Git metadata
+writes and IP socket creation must fail. Failure prevents activation. The
+offline suite additionally covers smoke failure propagation, root refusal,
+and upstream profile integrity (17 total tests).

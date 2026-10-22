@@ -5,6 +5,7 @@ Validates automation/manage.py's attribution, preparation, publishing boundaries
 and deployment credential separation. No research/model calls are made.
 """
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -16,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("manage", ROOT / "automation/manage.py")
 manage = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(manage)
+smoke_spec = importlib.util.spec_from_file_location("smoke", ROOT / "automation/sandbox_smoke.py")
+smoke = importlib.util.module_from_spec(smoke_spec)
+smoke_spec.loader.exec_module(smoke)
 USER = {"login": "Nav1919", "id": 75394407, "name": "Pranav Panicker"}
 
 
@@ -97,6 +101,15 @@ class IntegrationTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_proposed_profile_matches_upstream_checksums(self):
+        proposal = ROOT / "automation/security-proposal"
+        metadata = json.loads((proposal / "provenance.json").read_text())
+        for name, record in metadata["files"].items():
+            self.assertEqual(hashlib.sha256((proposal / name).read_bytes()).hexdigest(), record["sha256"])
+        profile = json.loads((proposal / "codex-security-seccomp.json").read_text())
+        self.assertEqual(profile["defaultAction"], "SCMP_ACT_ERRNO")
+        self.assertNotIn("seccomp=", (ROOT / "automation/compose.yaml").read_text())
+
     def test_low_disk_blocks_build_before_contacting_docker(self):
         with patch.object(manage.shutil, "disk_usage") as usage, patch.object(manage.subprocess, "run") as run:
             usage.return_value.free = 1024 ** 3
@@ -123,6 +136,18 @@ class ConfigurationTests(unittest.TestCase):
         worker = (ROOT / "automation/compose.yaml").read_text().split("  worker:")[1]
         for forbidden in (".runtime/controller", "docker.sock", "GH_TOKEN", "DISCORD", "~/.codex", "privileged:"):
             self.assertNotIn(forbidden, worker)
+
+
+class SandboxSmokeTests(unittest.TestCase):
+    def test_namespace_failure_is_not_reported_as_success(self):
+        failure = subprocess.CompletedProcess([], 1, "", "bwrap: No permissions to create a new namespace")
+        with patch.object(smoke.os, "geteuid", return_value=10000, create=True), patch.object(smoke.tempfile, "NamedTemporaryFile"), patch.object(smoke.subprocess, "run", return_value=failure):
+            self.assertEqual(smoke.main(), 1)
+
+    def test_root_execution_refused(self):
+        with patch.object(smoke.os, "geteuid", return_value=0, create=True):
+            with self.assertRaisesRegex(AssertionError, "nonroot"):
+                smoke.main()
 
 
 class PublisherTests(unittest.TestCase):
