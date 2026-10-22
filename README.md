@@ -25,6 +25,21 @@ followed by all 11 tests and offline reproduction commands, passed. Other machin
 and operating systems have not been verified.
 See [setup](docs/freeway_setup.md) and [interface](docs/freeway_interface.md).
 
+## Compare thinking settings fairly
+
+A fair comparison gives each setting the same game situation and instructions.
+For example, Qwen can answer with thinking off and on. A model that supports
+low, medium, and high uses a separate comparison. The code checks the settings,
+model version, and game starts before a comparison can run.
+
+```sh
+python experiment_config.py configs/qwen_boolean.json --ready
+python experiment_starts.py configs/qwen_boolean.json
+```
+
+Both commands work offline. See [comparison details](docs/fair_comparisons.md)
+and [tests](docs/testing.md). Running saved comparison plans is added next.
+
 ## Start offline
 
 From the repository root, with the virtual environment activated:
@@ -109,6 +124,10 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `freeway_study.py` | Situation generation, one-call smoke, study orchestration and summaries; `test_freeway_study.py` |
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
+| `experiment_config.py`, `experiment_identity.py` | Check saved settings and label matching comparisons |
+| `reasoning_modes.py`, `model_capabilities.py` | Check which thinking settings a model supports |
+| `model_provenance.py`, `run_provenance.py`, `experiment_starts.py` | Check the model, code, simulator, and game starts |
+| `test_config_boundaries.py` | Invalid settings, stable comparisons, and metadata-only checks |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |

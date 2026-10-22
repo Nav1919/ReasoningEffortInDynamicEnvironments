@@ -1,0 +1,52 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[
+  {
+    "requested_selector": 0,
+    "actual_seed": 1000,
+    "initial_state_sha256": "8a4ec003a43456a0315b41d59a1524156b63f9ec4b86916e2d58feb882a919fe",
+    "split": "development"
+  },
+  {
+    "requested_selector": 1,
+    "actual_seed": 1001,
+    "initial_state_sha256": "428e356f9dee0df80f65397a04d1923cc0d37e48ce52fda20ee4deb11d398486",
+    "split": "development"
+  },
+  {
+    "requested_selector": 2,
+    "actual_seed": 1002,
+    "initial_state_sha256": "9599dbcfdf51747cc0f1a1247449da651b255a24b89ebda4d9e0ffc30fe8bec3",
+    "split": "development"
+  },
+  {
+    "requested_selector": 3,
+    "actual_seed": 1003,
+    "initial_state_sha256": "de899a7b4db78e7237f2af837cf96d57ec97190e073dbcaba60ba3cb17b19cb4",
+    "split": "development"
+  },
+  {
+    "requested_selector": 4,
+    "actual_seed": 1013,
+    "initial_state_sha256": "be1a5adbe069ea708cd69cd2a55278468466734c72621d5b3889910553cc3801",
+    "split": "development"
+  },
+  {
+    "requested_selector": 5,
+    "actual_seed": 1014,
+    "initial_state_sha256": "59636021f2c32561a7bfc68c1a6bd2894d613aa26738461098908df3d2bcf962",
+    "split": "evaluation"
+  },
+  {
+    "requested_selector": 6,
+    "actual_seed": 1016,
+    "initial_state_sha256": "0e5f56f737f2f879e6748d939a99e1ff7cf090f4a384adb5f1fee05d65f0825f",
+    "split": "evaluation"
+  },
+  {
+    "requested_selector": 7,
+    "actual_seed": 1018,
+    "initial_state_sha256": "2643e0d902bf817b2d6611102eba79d9bba5938568116c29d6909c4e7f2eb012",
+    "split": "evaluation"
+  }
+]
