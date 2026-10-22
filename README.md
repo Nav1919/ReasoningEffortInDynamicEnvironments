@@ -10,7 +10,7 @@ Our research question is: **How should an LLM agent allocate reasoning effort wh
 
 ## How to Navigate this Repo
 
-The repository currently contains this README and the planning pages in `docs/`. Code, tests, and tutorial notebooks have **not** been added yet. 
+The repository contains planning pages and a verified no-LLM Freeway smoke runner. No tutorial notebooks or LLM evaluation runner have been added yet.
 
 | Path | What it contains | Status |
 |---|---|---|
@@ -22,7 +22,11 @@ The repository currently contains this README and the planning pages in `docs/`.
 | `docs/final-report.md` | Final-report working outline | Available |
 | `docs/related-works.md` | Paper summaries and annotation links | Available |
 | `docs/weekly-tracker.md` | 11-week task plan, check-ins, and result log | Available |
-| Code, tests, and notebooks | Add paths and descriptions as they are created | Not yet available |
+| `scripts/freeway_smoke.py` | Bounded fixed-action JSONL runner; usage: `python scripts/freeway_smoke.py --output NEW.jsonl` with the [pinned setup](docs/freeway-setup.md); tested by `tests/test_freeway_smoke.py` | Verified, pending review |
+| `tests/test_freeway_smoke.py` | Settings/API unit checks and real subprocess replay; run `python -m unittest discover -s tests -v` with the pinned setup | 7 tests passed |
+| `docs/freeway-setup.md` | Tested headless commands, runnable-file/API details, provenance, limits and assistance disclosure | Available |
+| `requirements-freeway.txt` | Minimal selected-source runtime pins (not full upstream installation) | Available |
+| `artifacts/freeway/` | Actual ten-step JSONL sample and verification/provenance manifest | Available |
 
 @Team Members: When adding code, list **each runnable code file** here with its purpose, usage, and unit-test link. Keep notebook entries here too, including prerequisites and the order in which to run them.
 
