@@ -6,7 +6,7 @@ First follow the installation steps in the README. Then run:
 python -m unittest discover -v
 ```
 
-This branch has 43 tests. They run without Ollama or model downloads. They check
+This branch has 78 tests. They run without Ollama or model downloads. They check
 the game rules, action parsing, timing calculations, and all 15 saved game replays.
 They also rebuild the saved tables in a temporary folder and check every published
 file against its saved checksum. Deliberately damaged records must fail replay.
@@ -27,3 +27,20 @@ python -m unittest test_config_boundaries test_experiment_config test_experiment
 ```
 
 Model checks use fake metadata. They never ask a model to answer a question.
+
+## Check execution and failures
+
+The tests run saved plans with a fake model. They check successful answers,
+invalid answers, interrupted runs, timeouts, and a model that cannot load. They
+also test the live game loop with a controlled clock. Real model calls and waits
+are replaced, so these tests cost no inference time.
+
+```sh
+python -m unittest test_comparison_failures test_comparison_execution test_frozen_comparison test_controlled_runner test_native_preload test_comparison_summary test_comparison_metrics test_comparison_commands test_comparison_plan test_plan_consistency test_decision_records test_run_records -v
+```
+
+For example, if the first answer times out, the next question must not be sent.
+The failed question and all unrun questions must still appear in the saved files.
+A changed plan is rejected before any request. Results made with different code
+cannot be silently mixed. A 600-second loading limit does not extend the
+180-second answer limit. The native plan asks exactly 18 measured questions.

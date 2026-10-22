@@ -25,20 +25,12 @@ followed by all 11 tests and offline reproduction commands, passed. Other machin
 and operating systems have not been verified.
 See [setup](docs/freeway_setup.md) and [interface](docs/freeway_interface.md).
 
-## Compare thinking settings fairly
+## Compare thinking settings
 
-A fair comparison gives each setting the same game situation and instructions.
-For example, Qwen can answer with thinking off and on. A model that supports
-low, medium, and high uses a separate comparison. The code checks the settings,
-model version, and game starts before a comparison can run.
-
-```sh
-python experiment_config.py configs/qwen_boolean.json --ready
-python experiment_starts.py configs/qwen_boolean.json
-```
-
-Both commands work offline. See [comparison details](docs/fair_comparisons.md)
-and [tests](docs/testing.md). Running saved comparison plans is added next.
+Save a list of game situations before asking the model. Each thinking setting
+gets the same situation. The results show answers, failures, and questions that
+never ran. For example, a timeout must stay visible instead of disappearing
+from the comparison. Follow the [short guide](docs/step2_handoff.md).
 
 ## Start offline
 
@@ -51,9 +43,8 @@ python replay_freeway.py evidence/freeway_20261008/live_01_seed0_tick2.json.gz
 python -m unittest test_model_freeway.py test_freeway_study.py test_reproducibility.py
 ```
 
-Run every offline check with `python -m unittest discover -v`.
-The tests replay all 15 saved games, rebuild the result tables, check saved-file
-checksums, and reject damaged game records. See [testing](docs/testing.md).
+Run all offline checks with `python -m unittest discover -v`.
+See [testing](docs/testing.md) for examples and smaller test groups.
 
 The baseline always moves up and prints a timestamped `logs/scripted_freeway_*.json`
 path. On the pinned setup, seed 0 times out after 100 turns with 25 collisions.
@@ -123,12 +114,10 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `diagnose_freeway.py` | Earlier four-state diagnostic; requires Ollama |
 | `freeway_study.py` | Situation generation, one-call smoke, study orchestration and summaries; `test_freeway_study.py` |
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
+| `test_evidence_integrity.py` | Check saved-file checksums and reject damaged replays |
+| `test_config_boundaries.py` | Reject unfair settings before model calls |
+| `test_comparison_failures.py` | Check timeouts, changed plans, missing logs, and incompatible results |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
-| `experiment_config.py`, `experiment_identity.py` | Check saved settings and label matching comparisons |
-| `reasoning_modes.py`, `model_capabilities.py` | Check which thinking settings a model supports |
-| `model_provenance.py`, `run_provenance.py`, `experiment_starts.py` | Check the model, code, simulator, and game starts |
-| `test_config_boundaries.py` | Invalid settings, stable comparisons, and metadata-only checks |
-| `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
 | `docs/freeway_diagnosis.md` | Earlier local audit; referenced ignored logs are not all published |
@@ -143,9 +132,8 @@ Slower ticks change both elapsed time and timing information in the prompt.
 Prompt mechanics are simplified, and the model often fails even on frozen states.
 No tutorial notebooks or completed final report are included.
 
-PR #5 proposes a separate offline schema with split/mode validation. Integration
-is deferred: these historical pilot logs predate that schema and were not collected
-with its proposed held-out protocol. This PR does not adopt or merge that work.
+Historical pilot logs were collected before the new saved comparison plans.
+Keep them separate: they were not collected with the new evaluation protocol.
 
 ## Each Code File
 
