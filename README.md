@@ -10,7 +10,7 @@ Our research question is: **How should an LLM agent allocate reasoning effort wh
 
 ## How to Navigate this Repo
 
-The repository currently contains this README and the planning pages in `docs/`. Code, tests, and tutorial notebooks have **not** been added yet. 
+The repository currently contains this README and the planning pages in `docs/`. Code, tests, and tutorial notebooks have **not** been added yet.
 
 | Path | What it contains | Status |
 |---|---|---|
@@ -26,6 +26,8 @@ The repository currently contains this README and the planning pages in `docs/`.
 
 @Team Members: When adding code, list **each runnable code file** here with its purpose, usage, and unit-test link. Keep notebook entries here too, including prerequisites and the order in which to run them.
 
+Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deployment are managed outside this research repository.
+
 ## How to Export & Use the Code
 
 To obtain the current repository:
@@ -39,7 +41,7 @@ You can also select **Code → Download ZIP** on GitHub.
 
 ## Tutorial Notebooks
 
-No tutorial notebooks have been added yet. 
+No tutorial notebooks have been added yet.
 
 ## Each Code File
 
