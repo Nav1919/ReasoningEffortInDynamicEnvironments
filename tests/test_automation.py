@@ -26,6 +26,9 @@ USER = {"login": "Nav1919", "id": 75394407, "name": "Pranav Panicker"}
 worker_spec = importlib.util.spec_from_file_location("worker_config", ROOT / "automation/configure_worker.py")
 worker_config = importlib.util.module_from_spec(worker_spec)
 worker_spec.loader.exec_module(worker_config)
+snapshot_spec = importlib.util.spec_from_file_location("board_snapshot", ROOT / "automation/board_snapshot.py")
+board_snapshot = importlib.util.module_from_spec(snapshot_spec)
+snapshot_spec.loader.exec_module(board_snapshot)
 export_spec = importlib.util.spec_from_file_location("export_worker", ROOT / "automation/export_worker.py")
 export_worker = importlib.util.module_from_spec(export_spec)
 with patch.dict(sys.modules, {"manage": manage}):
@@ -71,6 +74,24 @@ class BundleHandoffTests(unittest.TestCase):
             wrong = dict(record, email="unverified@example.com")
             with self.assertRaisesRegex(ValueError, "authors do not match"):
                 export_worker.import_bundle(bundle, root / "wrong-author", "agent/test", wrong)
+
+
+class MonitorSnapshotTests(unittest.TestCase):
+    def test_reordering_and_heartbeat_do_not_trigger_a_changed_snapshot(self):
+        first = [{"id": "b", "status": "running", "started_at": 1},
+                 {"id": "a", "status": "blocked"}]
+        second = [{"id": "a", "status": "blocked"},
+                  {"id": "b", "status": "running", "started_at": 99, "heartbeat": 100}]
+        self.assertEqual(board_snapshot.snapshot(first), board_snapshot.snapshot(second))
+        second[1]["status"] = "review"
+        self.assertNotEqual(board_snapshot.snapshot(first), board_snapshot.snapshot(second))
+
+    def test_large_boards_are_explicitly_truncated(self):
+        result = json.loads(board_snapshot.snapshot([{"id": str(i), "title": "x" * 900} for i in range(201)]))
+        self.assertTrue(result["truncated"])
+        self.assertEqual(result["total"], 201)
+        self.assertEqual(len(result["tasks"]), 200)
+        self.assertEqual(len(result["tasks"][0]["title"]), 600)
 
 
 class CallbackPolicyTests(unittest.TestCase):

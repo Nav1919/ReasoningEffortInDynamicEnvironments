@@ -1,3 +1,5 @@
+> Current verified state (October 22): the local controller and hourly change-only monitor are running. Discord delivery and an actual owner mention/read-only reply passed. The coding worker is stopped and its test card remains blocked. Earlier stages below describe history.
+
 # Hermes + Codex research automation
 
 ## Implementation and boundaries
@@ -418,3 +420,96 @@ The user creates its credential in Discord and enters it only in the native
 controller onboarding window. Do not place its token in this document, PR,
 worker home, command arguments or chat. Verify token presence, owner allowlist,
 intents and actual delivery before claiming the adapter active.
+
+## Discord connection and controller service — October 22
+
+
+
+The operator created Hermes Research application `1562877749889212577`, enabled
+
+its Discord intents, entered its token through the masked native onboarding
+
+wizard, and installed it into the existing server now named **NavLand**. The
+
+operator selected its existing **#agent-updates** channel, not the proposed new
+
+private channel; the unfinished new-channel form was canceled. No new Discord
+
+channel or channel-access rule was created.
+
+
+
+The bot API confirmed the intended application, required intents, an owner-only
+
+allowlist, effective view/send/thread permissions, and no Administrator bit.
+
+`DISCORD_HOME_CHANNEL=1560850627385622669` was saved through native Hermes config
+
+in the controller home only. The gateway logged an actual Discord connection.
+
+Native `hermes send` delivered setup message `1562903664849321995` to that channel.
+
+
+
+The initial controller-only connection test was bounded to ten minutes, then
+
+replaced with the requested Compose controller service, using the unchanged
+
+baseline security configuration and existing Linux volumes. It is a **local
+
+Docker Desktop service**, not a cloud deployment: it needs this computer and
+
+Docker running. `restart: unless-stopped` handles container restart, not host
+
+sleep, shutdown or an unavailable Docker engine. The coding worker is stopped.
+
+A Discord shutdown notice was emitted during that handover; it was not a research
+
+failure. The actual owner mention produced a correct read-only reply in a thread; no cards changed or work started. A human-response card mutation remains untested. Plain
+
+channel text without an actual Discord mention does not trigger the bot.
+
+
+
+## Native change-only monitor
+
+
+
+The controller has enabled native job `6521b2f214c3`, **Research board progress**,
+
+every 60 minutes, routed explicitly to NavLand #agent-updates. It uses
+
+`automation/board_snapshot.py`, installed as
+
+`/opt/data/scripts/research_board_snapshot.py`, with `--monitor-script` semantics.
+
+Hermes hashes the stable output and suppresses the model run entirely when
+
+unchanged. The script only invokes native Kanban's JSON listing and bounds its
+
+output; tests confirm heartbeat/timing noise and ordering do not trigger changes.
+
+The model prompt is `automation/monitor-prompt.md`.
+
+
+
+Its native per-job `enabled_toolsets=[]` was resolved and verified as zero tools,
+
+including no MCP merge. Thus the model only summarizes supplied data; it cannot
+
+mutate cards or invoke coding through this monitor. The model/provider and low
+
+reasoning are pinned to the separately authenticated controller's selected coding
+
+account. Role turn/time limits remain; this is not a provider-enforced dollar cap.
+
+
+
+A separate native delivery-test job `7d90da2e9234` delivered the correct blocked-task summary and exhausted its single-run limit; it is disabled. The hourly job is enabled. Its repeated unchanged check recorded `no_change (agent run suppressed)` in native output `2026-10-22_19-19-23.md`, verifying suppression before a model call. Inspect attempts with `hermes cron runs <job-id>` and definitions with `hermes cron list`.
+
+No coding worker, paid experiment or main merge was enabled by connecting Discord.
+
+The repository now has 28 passing offline checks. Controller deployment is
+
+partial; the end-to-end coding handoff remains blocked on managed persistence.
+
