@@ -3,6 +3,7 @@
 services:
   controller:
     image: hermes-research-base:4e58c721
+    init: true
     restart: unless-stopped
     mem_limit: 2g
     cpus: 1

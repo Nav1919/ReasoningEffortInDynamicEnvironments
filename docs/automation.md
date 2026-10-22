@@ -232,7 +232,7 @@ started for build validation. A remote Git build stalled; an archive of the exac
 same upstream commit then completed dependency installation and compilation.
 Image extraction failed with **read-only file system** in Docker's internal
 snapshot store; a subsequent read also returned **input/output error** and the
-worker build could not write Docker's metadata DB. The image is not usable.
+worker build could not write Docker's metadata DB. The image was initially unusable.
 No Docker data was reset/pruned and no daemon security settings were changed.
 The host C: drive had reached zero free bytes. Removing only this task's
 temporary upstream source checkout/archive recovered about 0.6 GB. Existing
@@ -240,12 +240,38 @@ Docker images, volumes and caches were preserved. The added `preflight` command
 blocks a new build below 20 GiB free; check Docker's VM allocation too. Do not
 rebuild on the current low-space drive.
 
+### Subsequent recovery and container smoke checks
+
+Following user-approved installer cleanup and R/RStudio uninstallation, Docker
+recovered without resetting its data or changing security settings. The Hermes
+image became inspectable and its CLI ran successfully. Two specifically
+identified temporary cache records from this task were removed (1.101 GB
+logical cache); existing images and volumes were retained.
+
+The Codex worker image built successfully and reported `codex-cli 0.163.0`.
+Hermes recognized the dedicated `coder` profile, and the `research` board was
+initialized under `/board/kanban/boards/research/kanban.db`. Both services use
+Compose `init: true` so the direct nonroot entrypoint has a process reaper.
+
+The actual no-model sandbox test failed before executing the test program:
+`bwrap: No permissions to create a new namespace`. Workspace-write shell
+execution in this container is therefore **blocked**, not verified safe or
+ready for coding. No privileged mode, seccomp relaxation, sysctl or sandbox
+bypass was applied. A compatible host/runtime or an explicitly approved,
+reviewed namespace configuration is required before retrying. No model calls
+or research experiments were made.
+
+Docker unpacking/snapshotting consumed substantial space even for the worker
+layer; the 20 GiB build guard remains in place for future builds. The final
+observed host headroom was about 3.4 GiB. No further builds should run at that
+headroom. User projects, scripts and data were preserved during app removal.
+
 Remaining operator actions, in order:
 
-1. Restore at least 20 GiB of host disk headroom, then diagnose/repair Docker
-   Desktop storage using its supported diagnostics;
-   preserve existing images/volumes before any reset. Rebuild until image
-   inspection and a one-shot Hermes CLI command both succeed.
+1. Restore at least 20 GiB of host disk headroom before additional builds.
+   Docker and the two images now work; no reset/rebuild is currently needed.
+   Resolve the namespace restriction through a compatible runtime or an
+   explicitly approved security configuration. Do not disable the sandbox.
 2. Finish the dedicated controller/provider, Discord and container Codex logins
    above. Select the available coding model and register the native callback.
 3. Verify nested sandbox behavior, one research worktree/commit/review handoff,
@@ -254,8 +280,8 @@ Remaining operator actions, in order:
    before paid experiments. Require CI by policy only with owner consent.
 
 No persistent agents, cron schedule or Discord delivery are claimed active.
-No changes were merged. Container runtime, sandbox smoke test, Discord
-round-trip, cron delivery and restart persistence remain unverified.
+No changes were merged. Container CLI checks passed; the sandbox smoke test
+failed. Discord round-trip, cron delivery and restart persistence remain unverified.
 
 Run checks: `python -m unittest discover -s tests -v` and
 `docker compose -f automation/compose.yaml config --quiet`.
