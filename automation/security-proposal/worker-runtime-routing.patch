@@ -1,0 +1,17 @@
+--- a/agent/managed_worker.py
++++ b/agent/managed_worker.py
+@@ -426,6 +426,14 @@
+         if kwargs['api_key'] is None:
+             from gateway.session_worker_construct import worker_api_key
+             kwargs['api_key'] = worker_api_key(policy, kwargs)
++        # AIAgent otherwise infers codex_responses from provider and loses the
++        # frozen profile's explicit Codex app-server runtime selection.
++        from hermes_cli.runtime_provider import _maybe_apply_codex_app_server_runtime
++        mode = _maybe_apply_codex_app_server_runtime(
++            provider=kwargs.get('provider') or '', api_mode=kwargs.get('api_mode'),
++            model_cfg=policy.config().get('model'), requested_provider=policy.provider)
++        if mode is not None:
++            kwargs['api_mode'] = mode
+         return factory(**kwargs)
+     except Exception as exc:
+         from gateway.session_kanban import record_start_failure

@@ -530,3 +530,12 @@ worker test passed, followed by 11 fake-Codex/native receipt and fencing checks.
 No credentials or production volumes were present. Test-fixture diffs and exact
 limits are recorded with the proposal. The patch remains inactive in persistent
 services; a credentialed coding/commit/review handoff still needs validation.
+
+The approved real validation card `t_261eb224` passed managed persistence far
+enough to send heartbeat/block, but stopped on a Hermes terminal approval. No
+tracked edits or commits occurred; permissions were restored. Diagnosis found
+the managed constructor drops the selected Codex `api_mode`, and root `toolsets`
+did not restrict the native CLI surface. An inactive routing patch and tighter
+worker CLI template are prepared; three fake-factory checks pass. The coding
+handoff is still unverified, and no extra retry is authorized by that spent
+single-attempt test. See the proposal for details.

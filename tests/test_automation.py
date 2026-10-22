@@ -282,6 +282,13 @@ class SandboxSmokeTests(unittest.TestCase):
                 smoke.main()
 
 
+class WorkerSurfaceTests(unittest.TestCase):
+    def test_worker_cli_excludes_hermes_shell_tools(self):
+        config = json.loads((Path(__file__).resolve().parents[1] / "automation/worker.json").read_text())
+        self.assertEqual(config["platform_toolsets"]["cli"], ["kanban"])
+        self.assertEqual(config["model"]["openai_runtime"], "codex_app_server")
+
+
 class PublisherTests(unittest.TestCase):
     def test_draft_pr_and_actual_profile_association(self):
         self.run_publish("Nav1919")

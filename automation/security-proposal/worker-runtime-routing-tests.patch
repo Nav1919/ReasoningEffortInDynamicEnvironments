@@ -1,0 +1,12 @@
+--- /dev/null
++++ b/tests/gateway/test_managed_codex_runtime_selection.py
+@@ -0,0 +1,9 @@
++from types import SimpleNamespace
++import pytest
++from agent.managed_worker import _construct_agent
++@pytest.mark.parametrize('provider,runtime,expected', [('openai-codex','codex_app_server','codex_app_server'),('openai','codex_app_server','codex_app_server'),('openai-codex','auto',None)])
++def test_managed_factory_retains_selected_runtime(provider,runtime,expected):
++ policy=SimpleNamespace(provider=provider,config=lambda:{'model':{'openai_runtime':runtime}})
++ result=_construct_agent({},lambda **kw:kw,policy,api_key='fake-loopback-key',provider=provider)
++ assert result.get('api_mode')==expected
++ assert result['api_key']=='fake-loopback-key'
