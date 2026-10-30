@@ -16,6 +16,9 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 import realtimegym
+from reasoning_modes import QWEN_MODES, thinking_value
+from experiment_config import validate_config, positive
+import hashlib
 
 
 def convert_scalar(value):
@@ -26,19 +29,25 @@ def convert_scalar(value):
     raise TypeError(f"Cannot serialize {type(value).__name__}")
 
 
-def post_json(endpoint, payload):
+def post_json(endpoint, payload, timeout=180):
     # send a request to the Ollama server running on our own computer
     request = Request(
         f"http://localhost:11434/api/{endpoint}",
-        data=json.dumps(payload).encode("utf-8"),
+        data=None if endpoint in {"version", "tags"} else json.dumps(payload).encode("utf-8"),
         headers={"Content-Type": "application/json"},
-        method="POST",
+        method="GET" if endpoint in {"version", "tags"} else "POST",
     )
-    with urlopen(request, timeout=180) as response:
+    with urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
 def build_prompt(observation, tick_seconds, strategy="original", board="full"):
+    if strategy == "progress_source_v2":
+        # Keep historical templates byte-identical; version the edge-clamp clarification.
+        return build_prompt(observation, tick_seconds, "progress_source", board).replace(
+            "U increases player y by 1; D decreases it by 1; S leaves it unchanged. ",
+            "U increases player y by 1; D decreases it by 1; both clamp at the "
+            "start/goal edges. S leaves it unchanged. ")
     # explain the structured state using the benchmark's coordinate system
     # x=0 is the player's column; y=0 is the start and y=9 is the goal
     # this snapshot won't update while the model generates its response
@@ -139,13 +148,39 @@ def parse_action(response, error=None):
     return action if valid else None
 
 
+def prompt_record(config, tick_seconds):
+    """Record the exact instruction prefix and a fingerprint, excluding observation."""
+    positive(tick_seconds)
+    tick_seconds = next(tick for tick in config['tick_intervals'] if tick == tick_seconds)
+    prompt = config['prompt']
+    template = build_prompt({}, tick_seconds, prompt['variant'], prompt['board'])
+    instructions = template.rsplit('Observation:\n', 1)[0] + 'Observation:\n'
+    return dict(**prompt, instruction_template=instructions,
+                template_sha256=hashlib.sha256(instructions.encode()).hexdigest())
+
+
+def build_comparison_request(observation, config, mode, tick_seconds):
+    """Build a controlled request; mode may change only Ollama's think field."""
+    config = validate_config(config)
+    positive(tick_seconds)
+    if mode not in config['modes'] or tick_seconds not in config['tick_intervals']:
+        raise ValueError('Mode/condition is outside the recorded design')
+    tick_seconds = next(tick for tick in config['tick_intervals'] if tick == tick_seconds)
+    prompt = config['prompt']
+    return dict(model=config['model']['tag'],
+        messages=[{'role':'user', 'content':build_prompt(observation, tick_seconds,
+                  prompt['variant'], prompt['board'])}],
+        think=thinking_value(config['modes'][mode]), stream=False, keep_alive='5m',
+        options=copy.deepcopy(config['generation']))
+
+
 def build_request(observation, args):
     # Share exactly the same request settings between diagnostics and pilots.
     return {
         "model": args.model,
         "messages": [{"role": "user", "content": build_prompt(
             observation, args.tick_seconds, args.prompt, args.board)}],
-        "think": args.thinking == "on", "stream": False, "keep_alive": "5m",
+        "think": thinking_value(QWEN_MODES[args.thinking]), "stream": False, "keep_alive": "5m",
         "options": {"temperature": 0.6, "seed": getattr(args, "model_seed", 0),
                     "num_predict": 2048, "num_ctx": 4096},
     }
