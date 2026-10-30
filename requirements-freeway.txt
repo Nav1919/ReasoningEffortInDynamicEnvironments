@@ -1,0 +1,6 @@
+# install the dependency versions from our working local setup
+-r requirements-lock.txt
+
+# install the exact RealtimeGym commit used for our first scripted run
+# use github instead of a folder path specific to one teammate's laptop
+realtime-gym @ git+https://github.com/SALT-NLP/RealtimeGym.git@3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b
