@@ -130,6 +130,8 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
+| `paired_comparison.py` | Strict offline JSON/CSV matched-mode analysis; [schema and usage](docs/weekend/paired-comparison.md); `test_paired_comparison.py` (synthetic tests only) |
+| `test_paired_comparison.py` | Matching, failure/coverage, metric and CLI checks: `python -m unittest test_paired_comparison -v` |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
 | `docs/freeway_diagnosis.md` | Earlier local audit; referenced ignored logs are not all published |
