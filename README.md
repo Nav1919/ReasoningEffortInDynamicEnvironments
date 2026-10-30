@@ -129,6 +129,7 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `freeway_study.py` | Situation generation, one-call smoke, study orchestration and summaries; `test_freeway_study.py` |
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
+| `freshness_audit.py` | Read-only observation-age/traffic-change audit; `test_freshness_audit.py`; [definition and usage](docs/weekend/freshness-audit.md) |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
