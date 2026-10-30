@@ -49,6 +49,26 @@ saved actions in the simulator and compares every observation, score, collision,
 and terminal flag. The example verifies 48 turns and 6 collisions. It does not
 recreate the original wall-clock timing or model outputs.
 
+## Bounded no-LLM smoke runner
+
+The separate [smoke setup](docs/freeway-setup.md) describes a ten-step fixed-action
+JSONL runner with source-hash checks. Its minimal selected-source dependencies are
+in `requirements-freeway-smoke.txt`; use a separate environment from the full
+installation above because its historical NumPy pin differs.
+
+| Path | Purpose and check |
+|---|---|
+| `scripts/freeway_smoke.py` | Bounded fixed-action runner: `python scripts/freeway_smoke.py --output NEW.jsonl`; see pinned smoke setup |
+| `tests/test_freeway_smoke.py` | Settings/API checks and independent-process replay: `python -m unittest discover -s tests -v` |
+| `requirements-freeway-smoke.txt` | Minimal selected-source NumPy/pygame pins; does not install upstream source |
+| `docs/freeway-setup.md` | Historical Linux setup, API semantics, provenance and limits |
+| `artifacts/freeway/` | Original ten-step JSONL sample and verification manifest |
+
+The historical smoke evidence and seven-test result remain unchanged. This runner
+is separate from the asynchronous model runner and saved pilot above; its short
+repeatability check does not establish model quality. Run the smoke tests explicitly:
+root-level unittest discovery does not recurse into this non-package `tests/` folder.
+
 ## Smallest model check
 
 Install [Ollama](https://docs.ollama.com/quickstart), open its application (or use
@@ -79,8 +99,8 @@ connection comparison; it makes two calls, including a potentially slow thinking
 
 ## How the live runner works
 
-Observation → model request in a worker → game ticks continue → strict response
-parsing → action at the next tick → JSON log → summary → optional action replay.
+Observation Ã¢â€ â€™ model request in a worker Ã¢â€ â€™ game ticks continue Ã¢â€ â€™ strict response
+parsing Ã¢â€ â€™ action at the next tick Ã¢â€ â€™ JSON log Ã¢â€ â€™ summary Ã¢â€ â€™ optional action replay.
 This is **asynchronous inference**: traffic moves while the model computes.
 Only one request is pending at a time. While waiting the action is **S** (stay),
 which can still result in a collision. Each ready action is consumed once.
@@ -91,7 +111,7 @@ environment seed 0, model sampling seed 0, `qwen3:4b-q4_K_M`, temperature 0.6,
 `structured` removes the text drawing; `progress_source` separately corrects
 mechanics wording and was not used in the saved comparison.
 
-A seed is a repeatable initialization choice. Environment seeds 0–4 map to
+A seed is a repeatable initialization choice. Environment seeds 0Ã¢â‚¬â€œ4 map to
 1000, 1001, 1002, 1003, 1013. The model sampling seed controls sampling separately;
 it does not make asynchronous trajectories deterministic. Invalid, truncated,
 or failed responses are saved with a null parsed action and an explicit S fallback.
