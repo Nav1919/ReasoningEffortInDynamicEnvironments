@@ -2,11 +2,15 @@
 
 This is source/API and short-run repeatability verification, **not** a reasoning-effort evaluation or scientific result. No inference client or model is selected. Implementation and documentation were prepared with Hermes/Codex assistance, for human review.
 
+The minimal pins now live in `requirements-freeway-smoke.txt` to coexist with
+`main`'s full `requirements-freeway.txt` installation. Use separate environments;
+the original sample and manifest retain their historical provenance unchanged.
+
 ## Pinned minimal runtime
 
 Upstream: [SALT-NLP/RealtimeGym](https://github.com/SALT-NLP/RealtimeGym/tree/3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b), revision `3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b` (MIT). The tested runtime is an external **unmodified selected-source Freeway path**, not a full upstream package installation. Nothing upstream is vendored here. Its external source manifest includes selected-file and wheel SHA-256 values, also recorded as provenance in [the run manifest](../artifacts/freeway/manifest.json).
 
-Tested: Linux x86_64, CPython 3.13.5, NumPy 2.2.6, pygame 2.6.1. [requirements-freeway.txt](../requirements-freeway.txt) pins only the two packages needed for this headless import path. The renderer module imports pygame even with `render=False`. Full upstream installation has additional dependencies; this does not verify those dependencies or other environments. No network access or package installation was performed for this task.
+Tested: Linux x86_64, CPython 3.13.5, NumPy 2.2.6, pygame 2.6.1. [requirements-freeway-smoke.txt](../requirements-freeway-smoke.txt) pins only the two packages needed for this headless import path. The renderer module imports pygame even with `render=False`. Full upstream installation has additional dependencies; this does not verify those dependencies or other environments. No network access or package installation was performed for this task.
 
 The provisioned paths below are specific to the verification machine. For another machine, obtain the pinned upstream source separately and supply its `src` directory and your compatible dependency directory through `PYTHONPATH`. Installing these pins into a separate Python 3.13 environment is an **untested setup suggestion**, not an installation validated here. The runner itself contains no machine-specific paths and checks hashes of the four imported implementation files against the supplied source manifest before running.
 
@@ -44,7 +48,7 @@ The actual source, not the inconsistent upstream README snippets, defines:
 - `env.reset() -> (observation, done)`.
 - `env.step(action) -> (observation, done, cumulative_reward, collision_reset)`.
 
-`Freeway-v0/v1/v2` map to difficulty `E/M/H`. Input seeds are integers 0–7, not arbitrary RNG seeds; the returned mapped seed is recorded separately (v0 input 0 maps to 1000). The CLI requires the difficulty to match the environment. Actions are a finite, nonempty uppercase string containing only `U`, `D`, `S`; they are consumed once, not cycled. `U` moves up, `D` down, `S` stays. The runner stops at terminal done, action exhaustion, or the requested step limit (1–100). The upstream game has a 100-turn cap; no wall-clock deadline or pressure manipulation is applied.
+`Freeway-v0/v1/v2` map to difficulty `E/M/H`. Input seeds are integers 0â€“7, not arbitrary RNG seeds; the returned mapped seed is recorded separately (v0 input 0 maps to 1000). The CLI requires the difficulty to match the environment. Actions are a finite, nonempty uppercase string containing only `U`, `D`, `S`; they are consumed once, not cycled. `U` moves up, `D` down, `S` stays. The runner stops at terminal done, action exhaustion, or the requested step limit (1â€“100). The upstream game has a 100-turn cap; no wall-clock deadline or pressure manipulation is applied.
 
 Reward starts at 100 and decreases by one each turn: returned rewards are cumulative game scores, **not per-step rewards to sum**. A collision resets traffic/player internally while retaining reward and turn; `reset=True` is not terminal and must not cause an extra caller reset. Winning or the turn cap sets `done=True`; terminal observations are `{}`. The short actual sample exercises collision at step 8 but not terminal behavior. Synthetic tests cover terminal tuple ordering and stopping.
 

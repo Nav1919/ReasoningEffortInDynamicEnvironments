@@ -552,3 +552,21 @@ At every Monday discussion, add a link to last Thursday's figure, table, validat
 | 9 | _Add link_ | _Add result_ | _Add decision_ |
 | 10 | _Add link_ | _Add result_ | _Add decision_ |
 | 11 | _Add link_ | _Add result_ | _Add decision_ |
+
+## Evidence-backed publication checkpoint — October 17, 2026
+
+- [x] Scripted Freeway baseline and asynchronous Ollama runner exist.
+- [x] Frozen-state pilot: 135 responses / 15 situations; see
+  [report](freeway_timing_study.md) and [raw evidence](../evidence/freeway_20261008/README.md).
+- [x] Matched live pilot: five seeds at 1/2/4 seconds per turn; saved crossing
+  counts 0/5, 2/5, 2/5, with complete per-seed records.
+- [x] Offline replay and relocated summary-regeneration tests exist;
+  see [README commands](../README.md).
+- [x] Fresh isolated dependency installation on the same Mac; all 11 tests pass.
+- [ ] Installation on another machine/operating system.
+- [ ] Human PR approval and merge of this publication work.
+- [ ] Freshness-aware routing, refresh experiments, held-out comparisons and ablations.
+
+This checkpoint does not mark the planned weekly research tasks complete.
+Earlier checkboxes/result placeholders remain as planning history. Evidence here
+supports a preliminary runner/pilot milestone, not a validated controller result.

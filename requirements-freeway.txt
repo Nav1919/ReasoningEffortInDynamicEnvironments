@@ -1,5 +1,6 @@
-# Minimal headless selected-source runtime, NOT full realtime-gym dependencies.
-# External source: SALT-NLP/RealtimeGym @ 3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b
-# Tested CPython 3.13 Linux x86_64 wheels; see docs/freeway-setup.md.
-numpy==2.2.6
-pygame==2.6.1
+# install the dependency versions from our working local setup
+-r requirements-lock.txt
+
+# install the exact RealtimeGym commit used for our first scripted run
+# use github instead of a folder path specific to one teammate's laptop
+realtime-gym @ git+https://github.com/SALT-NLP/RealtimeGym.git@3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b
