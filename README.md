@@ -130,6 +130,8 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
+| `evaluation_audit.py` | Proposed read-only held-out completeness gate; [interface and limits](docs/weekend/evaluation-audit.md); `test_evaluation_audit.py` |
+| `test_evaluation_audit.py` | Synthetic digest, split, coverage, provenance and CLI corruption checks; `python -m unittest test_evaluation_audit -v` |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
 | `docs/freeway_diagnosis.md` | Earlier local audit; referenced ignored logs are not all published |
