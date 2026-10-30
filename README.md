@@ -129,6 +129,8 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `freeway_study.py` | Situation generation, one-call smoke, study orchestration and summaries; `test_freeway_study.py` |
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
+| `observation_history.py` | Standalone exact-turn current/older snapshots; bounded no-model demo; [usage and checks](docs/weekend/observation-history.md) |
+| `test_observation_history.py` | Snapshot isolation, failure, episode/terminal and real simulator tests: `python -m unittest test_observation_history -v` |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
