@@ -10,10 +10,12 @@ import argparse
 import copy
 import json
 import time
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 import realtimegym
 from reasoning_modes import QWEN_MODES, thinking_value
@@ -116,10 +118,12 @@ def build_prompt(observation, tick_seconds, strategy="original", board="full"):
     return prompt
 
 
-def request_action(payload, probe_delay):
+def request_action(payload, probe_delay, timeout=180, provider=None, clock=None):
     # this function runs in a worker thread
     # only the main thread touches the environment
-    started = time.perf_counter()
+    clock = clock or time.perf_counter
+    provider = provider or post_json
+    started = clock()
     try:
         if probe_delay is not None:
             # this is a clock test, not a model response
@@ -127,23 +131,33 @@ def request_action(payload, probe_delay):
             time.sleep(probe_delay)
             response = {"message": {"content": "U"}, "done_reason": "stop"}
         else:
-            response = post_json("chat", payload)
+            response = provider("chat", payload, timeout=timeout)
         error = None
     except Exception as exception:
         # a failed model request shouldn't stop the game clock
         # save the error and fall back to S when this request finishes
         response = None
+        if isinstance(exception, HTTPError):
+            body = exception.read().decode('utf-8', errors='replace')
+            try:
+                response = json.loads(body)
+            except ValueError:
+                response = {'raw_http_error_body':body}
         error = f"{type(exception).__name__}: {exception}"
-    finished = time.perf_counter()
+    finished = clock()
     return response, error, started, finished
 
 
 def parse_action(response, error=None):
     # Accept only a completed response containing one action, ignoring case
     # and surrounding whitespace. Never extract actions from prose or thinking.
-    content = (response or {}).get("message", {}).get("content", "")
+    if not isinstance(response, dict) or not isinstance(response.get("message"), dict):
+        return None
+    content = response['message'].get('content')
+    if not isinstance(content, str):
+        return None
     action = content.strip().upper()
-    valid = (error is None and (response or {}).get("done_reason") == "stop"
+    valid = (error is None and response.get("done_reason") == "stop"
              and action in {"U", "D", "S"})
     return action if valid else None
 
@@ -200,8 +214,37 @@ def main():
     # A study can choose the output name without parsing console messages.
     # Refuse an existing file so a rerun cannot overwrite earlier evidence.
     parser.add_argument("--log-path", default=None)
+    parser.add_argument('--experiment-config', type=Path)
+    parser.add_argument('--mode')
+    parser.add_argument('--replicate', type=int, default=0)
     args = parser.parse_args()
-    if args.log_path and Path(args.log_path).exists():
+    controlled = None
+    args.request_timeout = 180
+    if args.mode and not args.experiment_config:
+        parser.error('--mode requires --experiment-config')
+    if args.experiment_config:
+        from experiment_config import load_config
+        from experiment_identity import resolve_run
+        from run_records import setup_run
+        forbidden = {'--thinking','--model','--model-seed','--prompt','--board','--probe-delay'}
+        if any(arg.split('=')[0] in forbidden for arg in sys.argv[1:]):
+            parser.error('Recipe controls model/prompt/generation settings; do not override them')
+        config = load_config(args.experiment_config)
+        if config['design'] != 'live-starts-v1':
+            parser.error('Live gameplay requires a live-starts-v1 recipe')
+        resolved = resolve_run(config, args.mode, args.tick_seconds, args.seed, args.replicate)
+        log = Path(args.log_path) if args.log_path else Path(__file__).parent/'logs'/(
+            'controlled_' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + '.json')
+        controlled = setup_run(log, resolved)
+        if controlled['run_status'] != 'ready':
+            raise RuntimeError(f'Setup failed; inspect {log}')
+        args.log_path = str(log)
+        args.model = config['model']['tag']
+        args.request_timeout = config['request_timeout']
+        args.model_seed = config['generation'].get('seed')
+        args.controlled_config = config
+
+    if controlled is None and args.log_path and Path(args.log_path).exists():
         parser.error("log path already exists; choose a new filename")
     if args.tick_seconds <= 0 or (
         args.probe_delay is not None and args.probe_delay < 0
@@ -212,7 +255,9 @@ def main():
     # fail here if Ollama isn't running or the requested model is missing
     # the delayed scripted probe doesn't need Ollama
     model_metadata = None
-    if args.probe_delay is None:
+    if controlled is not None:
+        model_metadata = controlled['provenance']['model']['metadata']
+    elif args.probe_delay is None:
         model_metadata = post_json("show", {"model": args.model})
 
     # Warm up before the clock starts and preserve this request separately.
@@ -222,9 +267,18 @@ def main():
         payload = {"model": args.model, "messages": [{"role": "user",
                    "content": "Return only S."}], "think": False,
                    "stream": False, "keep_alive": "5m"}
-        response, warm_error, start, finish = request_action(payload, None)
+        if controlled is not None:
+            payload = build_comparison_request({}, config, args.mode, args.tick_seconds)
+            payload['messages'] = [{'role':'user', 'content':'Return only S.'}]
+        response, warm_error, start, finish = request_action(payload, None, args.request_timeout)
         warmup = {"request": payload, "response": response, "error": warm_error,
                   "latency_seconds": finish - start}
+        if controlled is not None and warm_error:
+            from freeway_study import write_json
+            controlled.update(warmup=warmup, run_status='setup_failed',
+                              setup_failure=dict(stage='warmup', reason=warm_error))
+            write_json(log, controlled)
+            raise RuntimeError(f'Warm-up failed; no gameplay started. Inspect {log}')
 
     env, real_seed, _ = realtimegym.make("Freeway-v0", seed=args.seed, render=False)
     observation, done = env.reset()
@@ -239,7 +293,7 @@ def main():
         "environment": "Freeway-v0",
         "requested_seed": args.seed,
         "real_seed": int(real_seed),
-        "settings": vars(args),
+        "settings": {k:str(v) if isinstance(v, Path) else v for k,v in vars(args).items()},
         "model_metadata": model_metadata,
         "warmup": warmup,
         "policy": "delayed_scripted_probe" if args.probe_delay is not None else "ollama",
@@ -249,6 +303,12 @@ def main():
         "decisions": [],
         "steps": [],
     }
+
+    if controlled is not None:
+        episode.update(controlled)
+        episode['run_status'] = 'running'
+        episode['settings']['experiment_config'] = str(args.experiment_config)
+        episode['settings'].pop('controlled_config', None)
 
     # use one worker and allow only one outstanding request at a time
     # a ready action is applied once, at the next game tick
@@ -264,6 +324,10 @@ def main():
     def collect_response():
         # collect a completed response without changing the environment
         response, request_error, started, finished = pending.result()
+        if controlled is not None:
+            from decision_records import decision_record
+            decision.update(decision_record(response, request_error))
+        response_fields = response if isinstance(response, dict) else {}
         parsed = parse_action(response, request_error)
         valid = parsed is not None
         decision.update({
@@ -285,9 +349,9 @@ def main():
             "valid_action": valid,
             "parsed_action": parsed,
             "fallback_action": None if valid else "S",
-            "completion_reason": (response or {}).get("done_reason"),
-            "output_tokens": (response or {}).get("eval_count"),
-            "input_tokens": (response or {}).get("prompt_eval_count"),
+            "completion_reason": response_fields.get("done_reason"),
+            "output_tokens": response_fields.get("eval_count"),
+            "input_tokens": response_fields.get("prompt_eval_count"),
         })
 
         # reject prose, invalid actions, and truncated responses
@@ -306,7 +370,8 @@ def main():
                 # later turns won't silently change this saved observation
                 observed_seconds = time.perf_counter() - started_episode
                 snapshot = copy.deepcopy(observation)
-                payload = build_request(snapshot, args)
+                payload = (build_comparison_request(snapshot, config, args.mode, args.tick_seconds)
+                           if controlled is not None else build_request(snapshot, args))
                 decision = {
                     "id": len(episode["decisions"]),
                     "observed_turn": int(env.game_turn),
@@ -316,12 +381,15 @@ def main():
                     "submitted_seconds": time.perf_counter() - started_episode,
                 }
                 episode["decisions"].append(decision)
-                pending = worker.submit(request_action, payload, args.probe_delay)
+                pending = worker.submit(request_action, payload, args.probe_delay, args.request_timeout)
 
             if pending is not None and pending.done():
                 collect_response()
                 ready = decision
                 pending = None
+                if controlled is not None and decision.get('request_status') == 'timeout':
+                    decision['status'] = 'request_failed'
+                    raise TimeoutError('Client timed out; server computation may continue. Stop before retrying.')
 
             now = time.perf_counter()
             if now >= next_tick:
@@ -348,6 +416,8 @@ def main():
                     )
                     ready["executed_action"] = action
                     ready["status"] = "applied"
+                    if controlled is not None:
+                        ready['application_status'] = 'applied'
 
                 before = copy.deepcopy(observation)
                 previous_score = float(env.reward)
@@ -410,6 +480,11 @@ def main():
             "error": error,
         }
 
+        if controlled is not None:
+            episode['run_status'] = ('complete' if done else
+                ('interrupted' if error and error.startswith(('KeyboardInterrupt','SystemExit')) else 'failed'))
+            episode['episode_outcome'] = 'crossed' if reached_goal else ('timeout' if done else 'incomplete')
+
         def save_log():
             with log_path.open("w", encoding="utf-8") as file:
                 json.dump(episode, file, indent=2, default=convert_scalar)
@@ -428,6 +503,8 @@ def main():
                 )
                 collect_response()
                 decision["status"] = "discarded_after_episode"
+                if controlled is not None:
+                    decision['application_status'] = 'discarded_after_episode'
             save_log()
         finally:
             worker.shutdown(wait=True)

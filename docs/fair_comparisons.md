@@ -10,8 +10,8 @@ Offline: `python reasoning_modes.py` lists both definition sets and
 still sends exactly the same Qwen requests. Definitions alone do not certify
 that a selected model supports a control; capability checks follow separately.
 
-The earlier saved experiments remain unchanged. These new settings do not
-retroactively turn old experiments into fair comparisons.
+The earlier saved experiments remain unchanged. Their results are kept separate
+from the new comparisons.
 
 ## Capability checks and model-selection blocker (October 19)
 
@@ -99,3 +99,112 @@ and complete initial-state fingerprint, including hidden timers/RNG. Selectors
 are reserved evaluation starts, with just three available starts—a real limit.
 Duplicate actual seeds **or** initial layouts are rejected across the entire split.
 Environment selectors, model sampling seed and scheduling seed remain separate.
+
+## Response records
+
+A valid model `S` is distinct from a waiting step and invalid-response fallback S.
+`decision_record` separately records request status, received/absent response,
+action validity, action application, and measurement availability. For example,
+`eval_count: 0` stays zero; an absent count becomes null with an explanation and
+does not invalidate a good U/D/S answer. `eval_count` is output, not reasoning tokens.
+Timeouts, request errors, malformed responses, invalid actions, truncations and
+late/discarded responses remain explicit. Raw provider responses are preserved.
+
+## Setup cannot disappear
+
+`setup_run` exclusively creates a run file before any network/model setup.
+It saves resolved settings, source/start checks and model metadata. If Ollama is
+unavailable, the file says `setup_failed`, `model_setup`, and the actual error.
+Interrupted setup is saved too. Reusing the same filename fails rather than
+replacing evidence. Retry attempts must use new explicit attempt/run identifiers.
+
+## Existing live runner, saved settings
+
+`python run_model_freeway.py --experiment-config configs/qwen_live.json --mode off --seed 0 --tick-seconds 1`
+uses the existing traffic/inference loop, but performs recorded setup first and
+saves the resolved recipe, both IDs, source/model/start evidence and detailed
+response records in the episode. On uses the same command with `--mode on`.
+Recipe-controlled settings cannot be overridden with legacy model/prompt flags.
+Historical commands and default prompts remain supported. Warm-up uses a supported
+control outside gameplay timing. Offline tests use fake responses and clocks.
+
+## Save a plan before model calls
+
+`python freeway_study.py plan --config configs/native_effort_draft.json --output logs/native_plan_01 --dry-run`
+saves an offline `plan.json`, even while model selection is unresolved. It contains
+18 requests: two existing situations per category × three levels, one shared
+2048-token ceiling and one interval. Selection takes the first two selectors per
+category before a seeded shuffle; no model answers influence selection. Rotating
+levels gives each level each order position twice. Full resolved settings,
+rendered requests, actual starts, conditions and replicate/attempt IDs are saved.
+Qwen's separate recipe makes its own plan. The design itself enters comparison
+identity. Live plans cover development starts only; new retries require `--attempt 2`
+and a new output directory. Existing plans cannot be overwritten.
+
+`configs/qwen_live.json` is the separate live-game recipe. The runner rejects
+a frozen-pilot recipe for live gameplay so the saved design cannot be mislabeled.
+
+## One frozen pilot request
+
+`run_frozen` uses the existing model-call and parsing helpers after recorded
+setup and a separately logged warm-up. Traffic is frozen for the measured call;
+its returned action is checked on an independent simulator copy, not executed in
+a live game. It saves latency, raw answer, token availability, immediate safety
+and the category's relevant choice. Waiting-useful means a first action compatible
+with the saved short safe-progress sequence, not proof the model completes it.
+Invalid answers remain invalid; there is no executed fallback in this diagnostic.
+
+## Execute only the saved plan
+
+`python freeway_study.py execute --output logs/native_plan_01 --limit 1`
+checks the saved plan before making calls, creates an execution manifest, and
+attempts at most one run. Frozen runs use the existing helpers; live runs invoke
+the existing runner with the saved recipe. Every future/unrun entry stays
+`planned`. Setup failures and timeouts stop further requests. A client timeout
+does not prove server computation stopped: verify Ollama is idle before retrying.
+Existing execution files are rejected; create a new plan/folder with a new attempt
+ID to retry. `--limit 18` is the explicit full native pilot, currently blocked.
+
+## Pairing and missing partners
+
+New summaries check the saved plan/config IDs, actual model/environment identities
+and runnable source fingerprints. Pairing uses comparison ID + actual initial
+start + situation observation + interval + replicate + attempt, never the selector
+alone. Each mode keeps its status; an unrun/failed partner is named explicitly.
+A folder of historical Qwen records cannot be pooled into this comparison.
+
+## Rebuild the new summaries offline
+
+`python freeway_study.py summarize --output logs/native_plan_01` writes
+`comparison_summary.json` and `comparison_modes.csv` without model calls.
+It includes every planned status, mode/config IDs, missing partners, attempted
+request and valid-answer counts, immediate safety/relevant-choice numerators and
+denominators, latency, and token availability. Empty measurements stay null;
+measured zero remains zero. Frozen diagnostics never count as game crossings.
+Warm-ups are excluded. Existing historical summary/replay commands still work.
+
+## Plan/CLI consistency checks
+
+A CLI interval of `1.0` is resolved to the recipe's `1` before rendering requests,
+so saved plans and live logs have identical instructions and IDs. Reordering JSON
+object keys does not change mode order or the plan. Completed comparisons also
+check server version/template consistency. Server error response bodies are saved
+when available rather than being discarded with the HTTP error.
+
+## Native pilot: 18 questions, one model load
+
+Schema-2 frozen recipes explicitly select `warmup_policy: load_once`. Execution
+first calls Ollama `/api/generate` with an empty prompt, which loads weights
+without generating an answer; it records that response separately. Exactly 18
+subsequent `/api/chat` calls ask the six situations at the three effort levels.
+Later run logs reference the first preload. Schema-1 Qwen recipes retain their
+historical per-run warm-up questions and their original comparison IDs.
+The inspected Ollama 0.35.1 `server/routes.go` returns `done_reason: load` before
+text generation when the prompt is empty; an unexpected load response stops setup.
+
+## Separate loading time from answering time
+
+A schema-3 frozen recipe can set `preload_timeout: 600` while keeping
+`request_timeout: 180`. This gives the model ten minutes to load, but each answer
+still has three minutes. Loading is recorded separately and never counted as a
+measured question. See `test_native_preload.py` for a fake-provider check.
