@@ -150,6 +150,14 @@ with its proposed held-out protocol. This PR does not adopt or merge that work.
 
 Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deployment are managed outside this research repository.
 
+## How to Navigate this Repo
+
+| Path | Purpose and check |
+|---|---|
+| `experiment_manifest.py` | Proposed offline explicit-config validator; `python experiment_manifest.py MANIFEST.json [COMPARISON.json ...]` |
+| `test_experiment_manifest.py` | Synthetic validation/failure checks; `python -m unittest test_experiment_manifest -v` |
+| [Run-manifest interface](docs/weekend/run-manifest.md) | Required inputs, comparison rules, limits and verification commands; no approved scientific configuration |
+
 ## Each Code File
 
 Every new code file must:
