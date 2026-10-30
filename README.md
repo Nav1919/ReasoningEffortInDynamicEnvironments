@@ -128,6 +128,8 @@ PR #5 proposes a separate offline schema with split/mode validation. Integration
 is deferred: these historical pilot logs predate that schema and were not collected
 with its proposed held-out protocol. This PR does not adopt or merge that work.
 
+Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deployment are managed outside this research repository.
+
 ## Each Code File
 
 Every new code file must:
