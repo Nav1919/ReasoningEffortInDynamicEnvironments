@@ -150,6 +150,16 @@ with its proposed held-out protocol. This PR does not adopt or merge that work.
 
 Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deployment are managed outside this research repository.
 
+## How to Navigate this Repo
+
+Offline routing proposals (not connected to the live runner):
+
+| Path | Purpose and check |
+|---|---|
+| `routing_rules.py` | Required-parameter fixed/adaptive decisions; `python -m unittest test_routing_rules -v` |
+| `test_routing_rules.py` | Synthetic boundaries, failures and declared-input isolation tests |
+| [Routing rules](docs/weekend/routing-rules.md) | Proposed interface, five synthetic examples and offline verification commands |
+
 ## Each Code File
 
 Every new code file must:
