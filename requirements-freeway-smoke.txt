@@ -1,0 +1,5 @@
+# Minimal headless selected-source runtime, NOT full realtime-gym dependencies.
+# External source: SALT-NLP/RealtimeGym @ 3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b
+# Tested CPython 3.13 Linux x86_64 wheels; see docs/freeway-setup.md.
+numpy==2.2.6
+pygame==2.6.1

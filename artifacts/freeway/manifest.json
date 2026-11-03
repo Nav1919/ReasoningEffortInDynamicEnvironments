@@ -1,0 +1,84 @@
+{
+  "purpose": "No-LLM source/API and bounded repeatability verification only",
+  "source_provenance": {
+    "source_commit": "3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b",
+    "repository": "https://github.com/SALT-NLP/RealtimeGym",
+    "scope": "Unmodified headless Freeway import path and supplied basic_usage example only; not a full package installation",
+    "source_files": {
+      "SOURCE.json": "d44480af35e0432bc60bc01587ed7878002b3bf3bd1f77ac044e0f4aabbdfa37",
+      "LICENSE": "2958a1d597c20791ca50edc414d7f31aeaf0f00969d2372cf51511d6d4eb29bd",
+      "README.md": "f462b3ea369fae3135d9dc90a10b5b656ca87fe4a3129d5ae05928c713e90444",
+      "pyproject.toml": "34479640882fc361eac69bdeb834c2ffa4ca0fe8185e4c57fbd2f58066162fa5",
+      "examples/basic_usage.py": "4fe8c031266e0fbbe72a5857afb4c246709f7e386614e244347c3d7d1441c96a",
+      "src/realtimegym/__init__.py": "1c6c6638129b196ea20fb63b41666e3b16c03833e9df37131d6177670caac6ed",
+      "src/realtimegym/environments/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "src/realtimegym/environments/base.py": "139b45e947c99bf9d4b929712167590d28338f8405e2669bfe4fa4b46628650a",
+      "src/realtimegym/environments/freeway.py": "9a0a252cb1db44830920268f745f0dadd3a00e4ccbe6863b36a38daa3126367a",
+      "src/realtimegym/environments/render/freeway_render.py": "a7bc924fbf14d9631af2735d3a38088922953786e45274e88208373153978430"
+    },
+    "wheels": {
+      "numpy-2.2.6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": "1bc23a79bfabc5d056d106f9befb8d50c31ced2fbc70eedb8155aec74a45798f",
+      "pygame-2.6.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": "ef07c0103d79492c21fced9ad68c11c32efa6801ca1920ebfd0f15fb46c78b1c"
+    }
+  },
+  "sample": {
+    "path": "artifacts/freeway/smoke-seed0.jsonl",
+    "sha256": "15322560bbc35c29735c3d2b4a0cdd385dbb127c18d57b9c550f654a94089382",
+    "record_count": 13,
+    "versions": {
+      "numpy": "2.2.6",
+      "pygame": "2.6.1",
+      "python": "3.13.5",
+      "realtimegym": "0.1.0"
+    },
+    "input_seed": 0,
+    "mapped_seed": 1000,
+    "environment": "Freeway-v0",
+    "difficulty": "E",
+    "actions": "USUSUSUSUS",
+    "max_steps": 10,
+    "summary": {
+      "done": false,
+      "final_cumulative_reward": 90,
+      "step_count": 10,
+      "stop_reason": "max_steps",
+      "type": "summary"
+    },
+    "collision_reset_steps": [
+      8
+    ]
+  },
+  "verification": {
+    "commands": [
+      "PYTHONPATH=/opt/data/research/freeway/source/src:/opt/data/research/freeway/site-packages PYGAME_HIDE_SUPPORT_PROMPT=1 SDL_VIDEODRIVER=dummy /usr/bin/python3.13 scripts/freeway_smoke.py --output artifacts/freeway/smoke-seed0.jsonl",
+      "PYTHONPATH=/opt/data/research/freeway/source/src:/opt/data/research/freeway/site-packages PYGAME_HIDE_SUPPORT_PROMPT=1 SDL_VIDEODRIVER=dummy /usr/bin/python3.13 -m unittest discover -s tests -v",
+      "PYTHONPATH=/opt/data/research/freeway/source/src:/opt/data/research/freeway/site-packages PYGAME_HIDE_SUPPORT_PROMPT=1 SDL_VIDEODRIVER=dummy /usr/bin/python3.13 /opt/data/research/freeway/source/examples/basic_usage.py"
+    ],
+    "test_result": "7 tests passed",
+    "test_elapsed_seconds": 0.682,
+    "independent_runner_processes": 2,
+    "comparison": "exact parsed JSON record equality including all before/after observations; no timing fields",
+    "unchanged_upstream_example": {
+      "steps": 10,
+      "mapped_seed": 1000,
+      "final_cumulative_reward": 90,
+      "done": false
+    },
+    "failures": []
+  },
+  "limits": {
+    "real_ten_step_runs": 3,
+    "coding_workers": 1,
+    "inference_calls": 0,
+    "paid_experiment_calls": 0,
+    "coding_assistant_usage": "Hermes/Codex assistance; subscription usage unmeasured",
+    "not_tested": [
+      "other seeds/difficulties",
+      "real terminal trajectories/full episodes",
+      "real-time pressure",
+      "rendering",
+      "clean install or independent teammate setup"
+    ]
+  },
+  "review": "Pending human review; not an evaluation or scientific result"
+}

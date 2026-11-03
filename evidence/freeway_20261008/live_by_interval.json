@@ -1,0 +1,80 @@
+[
+  {
+    "tick_seconds": 1,
+    "episodes": 5,
+    "successes": 0,
+    "mean_maximum_position": 4.4,
+    "mean_collisions": 15.2,
+    "total_collisions": 76,
+    "total_turns": 500,
+    "total_seconds": 502.1791643353645,
+    "valid": 277,
+    "invalid": 0,
+    "waiting_steps": 224,
+    "model_steps": 276,
+    "latency": {
+      "median": 1.2168612498790026,
+      "p90": 1.6155069996137172
+    },
+    "observation_age_turns": {
+      "median": 1.0,
+      "p90": 1.0
+    },
+    "observation_age_seconds": {
+      "median": 2.0034170415019616,
+      "p90": 2.0075651255901903
+    }
+  },
+  {
+    "tick_seconds": 2,
+    "episodes": 5,
+    "successes": 2,
+    "mean_maximum_position": 4.6,
+    "mean_collisions": 18.8,
+    "total_collisions": 94,
+    "total_turns": 361,
+    "total_seconds": 723.2399210841395,
+    "valid": 358,
+    "invalid": 0,
+    "waiting_steps": 3,
+    "model_steps": 358,
+    "latency": {
+      "median": 1.0492664370685816,
+      "p90": 1.5827154625905677
+    },
+    "observation_age_turns": {
+      "median": 0.0,
+      "p90": 0.0
+    },
+    "observation_age_seconds": {
+      "median": 2.0013718963600695,
+      "p90": 2.003602054109797
+    }
+  },
+  {
+    "tick_seconds": 4,
+    "episodes": 5,
+    "successes": 2,
+    "mean_maximum_position": 6,
+    "mean_collisions": 18,
+    "total_collisions": 90,
+    "total_turns": 347,
+    "total_seconds": 1389.9563521677628,
+    "valid": 347,
+    "invalid": 0,
+    "waiting_steps": 0,
+    "model_steps": 347,
+    "latency": {
+      "median": 1.149705459130928,
+      "p90": 1.6840128835756332
+    },
+    "observation_age_turns": {
+      "median": 0.0,
+      "p90": 0.0
+    },
+    "observation_age_seconds": {
+      "median": 4.001180958002806,
+      "p90": 4.002620483376086
+    }
+  }
+]

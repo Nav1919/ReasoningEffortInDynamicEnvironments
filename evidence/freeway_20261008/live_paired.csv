@@ -1,0 +1,6 @@
+requested_seed,actual_seed,1s_success,1s_maximum_position,1s_collisions,1s_turns,1s_waiting_steps,1s_applied_model_actions,2s_success,2s_maximum_position,2s_collisions,2s_turns,2s_waiting_steps,2s_applied_model_actions,4s_success,4s_maximum_position,4s_collisions,4s_turns,4s_waiting_steps,4s_applied_model_actions
+0,1000,False,7,8,100,50,50,True,9,6,48,0,48,True,9,4,33,0,33
+1,1001,False,4,21,100,36,64,False,1,19,100,0,100,False,7,17,100,0,100
+2,1002,False,2,20,100,52,48,False,1,50,100,1,99,False,1,50,100,0,100
+3,1003,False,5,18,100,45,55,True,9,2,13,0,13,True,9,3,14,0,14
+4,1013,False,4,9,100,41,59,False,3,17,100,2,98,False,4,16,100,0,100
