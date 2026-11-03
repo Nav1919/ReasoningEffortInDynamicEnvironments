@@ -157,10 +157,11 @@ For the revised diagnose-and-repair plan, start with
 [the situation-bank pilot](docs/situation_bank.md). `situation_bank.py` collects
 reachable checkpoints, generates bounded simulator answer keys, and verifies
 replay; `test_situation_bank.py` independently checks those labels. The local
-50-state engineering output is in `data/situation_bank/freeway_pilot_v1/`.
+50-state pilot can be regenerated with the commands in the guide.
 The expanded collector uses reachable-state search and category/lane-aware
-selection; its 500-state development bank and verified answer keys are in
-`data/situation_bank/freeway_bank_v2/`. See the guide for reproduction and limits.
+selection. Small examples and run summaries are in
+`data/situation_bank/freeway_bank_v2/`; full states and answer keys stay local.
+See the guide to regenerate them.
 
 ## Each Code File
 

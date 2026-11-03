@@ -17,8 +17,7 @@ from situation_bank import answer_key, balanced_bank, collect, digest, label, re
 
 class SituationBankTests(unittest.TestCase):
     def test_search_matches_exhaustive_sequences(self):
-        # Exhaustive enumeration uses the existing rollout helper instead of
-        # the new search recurrence, checking both safety and all optimal ties.
+        # Compare the search with every short action sequence, including ties.
         for prefix in ('', 'UU', 'UUU', 'UUUUSU'):
             env, _ = recreate(0, prefix)
             before = digest(internal_state(env))
@@ -41,8 +40,7 @@ class SituationBankTests(unittest.TestCase):
             self.assertEqual(digest(internal_state(env)), before)
 
     def test_goal_timeout_and_collision(self):
-        # These altered states are synthetic mechanics fixtures only. Bank
-        # collection itself always uses unmodified reachable simulator states.
+        # Edited states test edge cases only; they never enter the bank.
         env, _ = recreate(0, 'UUU')
         key = answer_key(env, 3)
         self.assertTrue(key['immediate']['U']['collision'])

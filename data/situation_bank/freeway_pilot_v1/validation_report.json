@@ -1,8 +1,0 @@
-{
-  "states_verified": 50,
-  "witnesses_replayed": 1161,
-  "snapshot_and_prefix_agree": true,
-  "labels_recomputed": true,
-  "duplicate_dynamics": 0,
-  "passed": true
-}

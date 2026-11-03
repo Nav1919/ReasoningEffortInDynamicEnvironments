@@ -18,3 +18,9 @@ logs/
 # ignore local agent runtime and isolated checkouts
 .runtime/
 .worktrees/
+
+# Keep full generated banks local; commit summaries and small examples.
+/data/situation_bank/*/states.json
+/data/situation_bank/*/labels.json
+/data/situation_bank/*/candidate_inventory.json
+/data/situation_bank/freeway_pilot_v1/

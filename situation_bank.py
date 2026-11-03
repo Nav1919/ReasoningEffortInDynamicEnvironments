@@ -42,8 +42,7 @@ def write(path, value):
 
 
 def restore(record):
-    # Restore readable snapshots, preserving NumPy arrays and the entire RNG.
-    # Replay from the seed and action prefix is checked independently in verify.
+    # Keep array types and random state intact when restoring JSON.
     env, actual = recreate(record['requested_seed'], '')
     if actual != record['actual_seed']:
         raise ValueError('Actual seed changed')
@@ -87,8 +86,7 @@ def collect(output, count=50, selectors=5, ticks=60, seed=473):
     if len(candidates) < count:
         raise ValueError(f'Only {len(candidates)} distinct candidates; requested {count}')
 
-    # Sample across actual initialization, player lane and collection policy.
-    # This engineering pilot measures category availability, not preset quotas.
+    # Spread the pilot across starts, lanes, and collection policies.
     random.Random(seed).shuffle(candidates)
     groups = defaultdict(list)
     for record in candidates:
@@ -157,9 +155,8 @@ def balanced_bank(output, count=500, selectors=5, ticks=89, seed=473, horizon=10
                     queue.append((trial, prefix+action))
         print(f'Explored start {selector}: {len(local_seen)} reachable physical states', flush=True)
 
-    # The search keeps the earliest visit to a physical configuration, preventing
-    # timeout variants from filling the bank. All candidates have real action
-    # prefixes; no car, player, or clock values are edited to improve coverage.
+    # Keep the earliest visit to each position and traffic arrangement.
+    # Repeated waits must not inflate the bank with the same situation.
     pools = defaultdict(list)
     cache = {}
     inventory = []
@@ -227,8 +224,8 @@ def answer_key(env, horizon=10, cache=None):
     cache = {} if cache is None else cache
     initial_cache_size = len(cache)
 
-    # Collision branches are rejected immediately, including reset transitions.
-    # Memoization merges identical exact states, not just matching observations.
+    # Stop at collisions, even when the game resets afterward.
+    # Reuse results only when the full state and remaining time match.
     def options(state, remaining):
         key = (digest(internal_state(state)), remaining)
         if key in cache:
@@ -297,8 +294,7 @@ def answer_key(env, horizon=10, cache=None):
 
 
 def rank(value):
-    # Goal first, then faster goal arrival; otherwise maximize final progress.
-    # All equally ranked first actions are retained, even with different witnesses.
+    # Prefer a faster crossing; otherwise compare final progress. Keep ties.
     return (int(value['goal']), -value['goal_ticks'] if value['goal'] else value['final_y'])
 
 
