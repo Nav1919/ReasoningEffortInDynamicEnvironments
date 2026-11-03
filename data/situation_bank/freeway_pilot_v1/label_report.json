@@ -1,0 +1,13 @@
+{
+  "count": 50,
+  "horizon": 10,
+  "labels_sha256": "42d656ad98c28212990df5fc1fe8988df7e423f906b30f380a42e563051b55c3",
+  "category_counts": {
+    "safe_advance": 40,
+    "must_retreat": 2,
+    "waiting_helps": 6,
+    "dangerous_advance": 1,
+    "other": 1
+  },
+  "search_states": 9596
+}

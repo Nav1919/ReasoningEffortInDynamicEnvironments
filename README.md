@@ -150,6 +150,18 @@ with its proposed held-out protocol. This PR does not adopt or merge that work.
 
 Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deployment are managed outside this research repository.
 
+## How to Navigate this Repo
+
+The existing files/evidence table above describes the earlier experiments.
+For the revised diagnose-and-repair plan, start with
+[the situation-bank pilot](docs/situation_bank.md). `situation_bank.py` collects
+reachable checkpoints, generates bounded simulator answer keys, and verifies
+replay; `test_situation_bank.py` independently checks those labels. The local
+50-state engineering output is in `data/situation_bank/freeway_pilot_v1/`.
+The expanded collector uses reachable-state search and category/lane-aware
+selection; its 500-state development bank and verified answer keys are in
+`data/situation_bank/freeway_bank_v2/`. See the guide for reproduction and limits.
+
 ## Each Code File
 
 Every new code file must:

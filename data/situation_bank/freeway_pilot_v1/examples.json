@@ -1,0 +1,161 @@
+[
+  {
+    "id": "freeway_0000",
+    "category": "safe_advance",
+    "player_lane": 1,
+    "tick": 6,
+    "immediate_collisions": {
+      "U": false,
+      "D": false,
+      "S": false
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "U",
+      "D",
+      "S"
+    ],
+    "best_first_actions": [
+      "U",
+      "D",
+      "S"
+    ],
+    "best_witnesses": {
+      "U": {
+        "goal": true,
+        "goal_ticks": 10,
+        "final_y": 9,
+        "witness": "UUDUUUUUUU"
+      },
+      "D": {
+        "goal": true,
+        "goal_ticks": 10,
+        "final_y": 9,
+        "witness": "DUUUUUUUUU"
+      },
+      "S": {
+        "goal": true,
+        "goal_ticks": 10,
+        "final_y": 9,
+        "witness": "SUSUUUUUUU"
+      }
+    },
+    "waiting_witnesses": []
+  },
+  {
+    "id": "freeway_0003",
+    "category": "waiting_helps",
+    "player_lane": 0,
+    "tick": 46,
+    "immediate_collisions": {
+      "U": true,
+      "D": false,
+      "S": false
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_witnesses": {
+      "D": {
+        "goal": false,
+        "goal_ticks": null,
+        "final_y": 1,
+        "witness": "DDUDUUUDDS"
+      },
+      "S": {
+        "goal": false,
+        "goal_ticks": null,
+        "final_y": 1,
+        "witness": "SDUDUUUDDS"
+      }
+    },
+    "waiting_witnesses": [
+      "SSU",
+      "SSSU"
+    ]
+  },
+  {
+    "id": "freeway_0002",
+    "category": "must_retreat",
+    "player_lane": 5,
+    "tick": 53,
+    "immediate_collisions": {
+      "U": true,
+      "D": false,
+      "S": true
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "D"
+    ],
+    "best_first_actions": [
+      "D"
+    ],
+    "best_witnesses": {
+      "D": {
+        "goal": true,
+        "goal_ticks": 6,
+        "final_y": 9,
+        "witness": "DUUUUU"
+      }
+    },
+    "waiting_witnesses": []
+  },
+  {
+    "id": "freeway_0028",
+    "category": "dangerous_advance",
+    "player_lane": 2,
+    "tick": 31,
+    "immediate_collisions": {
+      "U": true,
+      "D": false,
+      "S": false
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_witnesses": {
+      "D": {
+        "goal": false,
+        "goal_ticks": null,
+        "final_y": 7,
+        "witness": "DUDUUUSUUU"
+      },
+      "S": {
+        "goal": false,
+        "goal_ticks": null,
+        "final_y": 7,
+        "witness": "SSDUUUSUUU"
+      }
+    },
+    "waiting_witnesses": []
+  },
+  {
+    "id": "freeway_0030",
+    "category": "other",
+    "player_lane": 6,
+    "tick": 13,
+    "immediate_collisions": {
+      "U": true,
+      "D": true,
+      "S": true
+    },
+    "horizon": 10,
+    "safe_first_actions": [],
+    "best_first_actions": [],
+    "best_witnesses": {},
+    "waiting_witnesses": []
+  }
+]

@@ -1,0 +1,130 @@
+[
+  {
+    "id": "freeway_0000",
+    "category": "safe_advance",
+    "player_lane": 1,
+    "tick": 8,
+    "immediate_collisions": {
+      "U": false,
+      "D": false,
+      "S": false
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "U",
+      "D",
+      "S"
+    ],
+    "best_first_actions": [
+      "U"
+    ],
+    "best_witnesses": {
+      "U": {
+        "goal": false,
+        "goal_ticks": null,
+        "final_y": 6,
+        "witness": "UUDUUUDSUU"
+      }
+    },
+    "waiting_witnesses": []
+  },
+  {
+    "id": "freeway_0001",
+    "category": "waiting_helps",
+    "player_lane": 5,
+    "tick": 55,
+    "immediate_collisions": {
+      "U": true,
+      "D": false,
+      "S": false
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_witnesses": {
+      "D": {
+        "goal": true,
+        "goal_ticks": 7,
+        "final_y": 9,
+        "witness": "DUSUUUU"
+      },
+      "S": {
+        "goal": true,
+        "goal_ticks": 7,
+        "final_y": 9,
+        "witness": "SDUUUUU"
+      }
+    },
+    "waiting_witnesses": [
+      "SSSU"
+    ]
+  },
+  {
+    "id": "freeway_0002",
+    "category": "must_retreat",
+    "player_lane": 7,
+    "tick": 59,
+    "immediate_collisions": {
+      "U": true,
+      "D": false,
+      "S": true
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "D"
+    ],
+    "best_first_actions": [
+      "D"
+    ],
+    "best_witnesses": {
+      "D": {
+        "goal": true,
+        "goal_ticks": 4,
+        "final_y": 9,
+        "witness": "DUUU"
+      }
+    },
+    "waiting_witnesses": []
+  },
+  {
+    "id": "freeway_0003",
+    "category": "dangerous_advance",
+    "player_lane": 2,
+    "tick": 15,
+    "immediate_collisions": {
+      "U": true,
+      "D": false,
+      "S": false
+    },
+    "horizon": 10,
+    "safe_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_first_actions": [
+      "D",
+      "S"
+    ],
+    "best_witnesses": {
+      "D": {
+        "goal": false,
+        "goal_ticks": null,
+        "final_y": 7,
+        "witness": "DUDUUUSUUU"
+      },
+      "S": {
+        "goal": false,
+        "goal_ticks": null,
+        "final_y": 7,
+        "witness": "SSDUUUSUUU"
+      }
+    },
+    "waiting_witnesses": []
+  }
+]
