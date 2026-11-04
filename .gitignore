@@ -19,8 +19,6 @@ logs/
 .runtime/
 .worktrees/
 
-# Keep full generated banks local; commit summaries and small examples.
-/data/situation_bank/*/states.json
-/data/situation_bank/*/labels.json
-/data/situation_bank/*/candidate_inventory.json
-/data/situation_bank/freeway_pilot_v1/
+# Generated scenarios stay local and can be recreated with the script.
+/data/freeway_scenarios.json
+/data/situation_bank/

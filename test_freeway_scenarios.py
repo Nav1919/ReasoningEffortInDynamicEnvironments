@@ -1,8 +1,8 @@
 """Check checkpoint replay and bounded labels against independent enumeration.
 
-Run: .venv/bin/python -m unittest test_situation_bank -v. Inputs: local simulator
+Run: .venv/bin/python -m unittest test_freeway_scenarios -v. Inputs: local simulator
 and temporary pilot banks. Outputs: assertions only; no model requests. Covers
-situation_bank.py, including collision reset, goal, timeout and tied actions.
+freeway_scenarios.py, including collision reset, goal, timeout and tied actions.
 """
 import itertools
 import json
@@ -12,10 +12,10 @@ from collections import Counter
 from pathlib import Path
 
 from freeway_study import internal_state, recreate, simulate
-from situation_bank import answer_key, balanced_bank, collect, digest, label, restore, verify
+from freeway_scenarios import answer_key, digest, generate, load, main, run
 
 
-class SituationBankTests(unittest.TestCase):
+class FreewayScenarioTests(unittest.TestCase):
     def test_search_matches_exhaustive_sequences(self):
         # Compare the search with every short action sequence, including ties.
         for prefix in ('', 'UU', 'UUU', 'UUUUSU'):
@@ -56,56 +56,44 @@ class SituationBankTests(unittest.TestCase):
         env.pos = 1
         self.assertEqual(answer_key(env, 2)['by_horizon']['2']['best_first_actions'], ['U'])
 
-    def test_collection_restore_rebuild_and_validation(self):
-        with tempfile.TemporaryDirectory() as root:
-            first, second = Path(root)/'first', Path(root)/'second'
-            collect(first, count=10, selectors=2)
-            collect(second, count=10, selectors=2)
-            self.assertEqual((first/'states.json').read_bytes(), (second/'states.json').read_bytes())
-            states = json.loads((first/'states.json').read_text())
-            for record in states:
-                restored = restore(record)
-                replayed, _ = recreate(record['requested_seed'], record['preceding_actions'])
-                self.assertEqual(digest(internal_state(restored)), record['state_sha256'])
-                for actions in itertools.product('UDS', repeat=2):
-                    self.assertEqual(simulate(restored, ''.join(actions)),
-                                     simulate(replayed, ''.join(actions)))
-            label(first, horizon=3)
-            self.assertTrue(verify(first)['passed'])
-            with self.assertRaises(ValueError):
-                label(first, horizon=3)
-            with self.assertRaises(ValueError):
-                collect(first)
-            states[0]['snapshot']['pos'] = 8
-            (first/'states.json').write_text(json.dumps(states))
-            with self.assertRaises(ValueError):
-                verify(first)
-
     def test_argument_limits(self):
         env, _ = recreate(0, '')
         for h in (0, 11):
             with self.assertRaises(ValueError):
                 answer_key(env, h)
 
-    def test_balanced_collection_is_reachable_and_reproducible(self):
+    def test_one_file_generation_replay_and_categories(self):
         with tempfile.TemporaryDirectory() as root:
-            first, second = Path(root)/'first', Path(root)/'second'
+            first, second = Path(root)/'first.json', Path(root)/'second.json'
             for path in (first, second):
-                report = balanced_bank(path, count=16, selectors=1, ticks=10, horizon=3)
-                self.assertTrue(report['passed'])
-                manifest = json.loads((path/'manifest.json').read_text())
-                labels = json.loads((path/'labels.json').read_text())
-                self.assertEqual(manifest['count'], 16)
-                self.assertEqual(sum(manifest['selected_category_counts'].values()), 16)
-                self.assertNotIn('other', manifest['selected_category_counts'])
-                self.assertEqual(manifest['selected_actual_seeds'], [1000])
-                self.assertEqual(dict(Counter(k['category'] for k in labels)),
-                                 manifest['selected_category_counts'])
-                self.assertGreater(len(manifest['lane_counts']), 1)
-            self.assertEqual((first/'states.json').read_bytes(), (second/'states.json').read_bytes())
-            self.assertEqual((first/'labels.json').read_bytes(), (second/'labels.json').read_bytes())
+                bank = generate(path, count=16, selectors=1, ticks=10, horizon=3)
+                self.assertTrue(bank['metadata']['verification']['passed'])
+                self.assertEqual(len(bank['scenarios']), 16)
+                self.assertEqual(dict(Counter(s['category'] for s in bank['scenarios'])),
+                                 bank['metadata']['category_counts'])
+                self.assertEqual(len({s['dynamics_sha256'] for s in bank['scenarios']}), 16)
+                self.assertEqual(load(path), json.loads(path.read_text()))
+                self.assertTrue(run(load(path), scenario_id=0)['passed'])
+                category = bank['scenarios'][0]['category']
+                report = run(load(path), category=category)
+                self.assertEqual(report['scenarios_verified'],
+                                 bank['metadata']['category_counts'][category])
+                with self.assertRaises(ValueError):
+                    run(bank, scenario_id=999)
+                with self.assertRaises(ValueError):
+                    generate(path)
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            self.assertEqual(main(['summary', '--file', str(first)]), 0)
+            self.assertEqual(main(['run', '--id', '0', '--file', str(first)]), 0)
+            self.assertEqual(main(['run', '--all', '--file', str(first)]), 0)
+            self.assertEqual(main(['run', '--category', category, '--file', str(first)]), 0)
+            bank = load(first)
+            bank['scenarios'][0]['category'] = 'invalid'
+            first.write_text(json.dumps(bank))
             with self.assertRaises(ValueError):
-                balanced_bank(Path(root)/'invalid', selectors=6)
+                load(first)
+            with self.assertRaises(ValueError):
+                generate(Path(root)/'invalid.json', selectors=6)
 
     def test_shared_cache_preserves_answers(self):
         cache = {}

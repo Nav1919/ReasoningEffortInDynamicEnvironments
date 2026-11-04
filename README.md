@@ -152,16 +152,37 @@ Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deplo
 
 ## How to Navigate this Repo
 
-The existing files/evidence table above describes the earlier experiments.
-For the revised diagnose-and-repair plan, start with
-[the situation-bank pilot](docs/situation_bank.md). `situation_bank.py` collects
-reachable checkpoints, generates bounded simulator answer keys, and verifies
-replay; `test_situation_bank.py` independently checks those labels. The local
-50-state pilot can be regenerated with the commands in the guide.
-The expanded collector uses reachable-state search and category/lane-aware
-selection. Small examples and run summaries are in
-`data/situation_bank/freeway_bank_v2/`; full states and answer keys stay local.
-See the guide to regenerate them.
+`freeway_scenarios.py` saves 500 Freeway situations in one local JSON file.
+Each has an ID, category, restorable state, and answers checked in the simulator.
+Use the existing project environment:
+
+```sh
+python freeway_scenarios.py generate
+python freeway_scenarios.py summary
+python freeway_scenarios.py run --id 42
+python freeway_scenarios.py run --category must_retreat
+python freeway_scenarios.py run --all
+```
+
+`run` replays situations and checks their answers; it does not run an LLM.
+Use `--file PATH` for another file. The default is `data/freeway_scenarios.json`,
+which is ignored by Git. Existing files are never overwritten.
+Tests: `python -m unittest test_freeway_scenarios -v`.
+
+Categories are safe advance, waiting helps, must retreat, and other dangerous
+advances. Waiting and retreat cases are counted first. The 500 contain 161, 161,
+160, and 18 respectively and cover every player position 0–8. Answers prefer
+a faster goal arrival, or greatest safe final progress within ten ticks; all
+tied first moves are kept. Safety requires following a safe continuation.
+
+The collection tests whether exploring reachable states improves coverage over
+random play. It uses the installed simulator and local CPU only, with no model
+calls or paid APIs, and stops after generation and replay checks. Acceptance:
+500 distinct physical situations, all player positions covered, and successful
+state and answer replay. These are related checkpoints from five development
+starts, not independent games or held-out tests. An early pilot also stepped
+selectors 5–7, so those cannot be called untouched test starts. Implementation
+and verification were AI-assisted; human review is required.
 
 ## Each Code File
 
