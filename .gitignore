@@ -18,3 +18,7 @@ logs/
 # ignore local agent runtime and isolated checkouts
 .runtime/
 .worktrees/
+
+# Generated scenarios stay local and can be recreated with the script.
+/data/freeway_scenarios.json
+/data/situation_bank/
