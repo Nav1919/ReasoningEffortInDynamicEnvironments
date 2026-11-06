@@ -221,3 +221,13 @@ Use [Related Works](docs/related-works.md) to track each paper by **paper name, 
 | Pranav Panicker | Project member |
 | Shohini Rhea Sarkar | Project member |
 | Akash Wudali | Project member |
+
+## Offline routing rules
+
+Offline routing proposals (not connected to the live runner):
+
+| Path | Purpose and check |
+|---|---|
+| `routing_rules.py` | Required-parameter fixed/adaptive decisions; `python -m unittest test_routing_rules -v` |
+| `test_routing_rules.py` | Synthetic boundaries, failures and declared-input isolation tests |
+| [Routing rules](docs/weekend/routing-rules.md) | Proposed interface, five synthetic examples and offline verification commands |
