@@ -130,6 +130,8 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
+| `evaluation_audit.py` | Proposed read-only held-out completeness gate; [interface and limits](docs/weekend/evaluation-audit.md); `test_evaluation_audit.py` |
+| `test_evaluation_audit.py` | Synthetic digest, split, coverage, provenance and CLI corruption checks; `python -m unittest test_evaluation_audit -v` |
 | `decision_model_experiments/models.py` | Local LLM calls for the decision-model experiment (`call_reasoning_model` and `call_instant_model` via Ollama; same frozen `qwen3:4b-q4_K_M` tag; actor thinking off by default); `tests/test_decision_models.py` |
 | `decision_model_experiments/observer_agent.py` | Reasoning-only Freeway observer (`think(observation) -> str`); keeps `GenerationResult` for logging; `tests/test_observer_agent.py` |
 | `decision_model_experiments/actor_agent.py` | Decision-model actor (`act(context) -> U/D/S`); strict parse with fallback `S`; does not know `context_mode`; `tests/test_actor_agent.py` |
