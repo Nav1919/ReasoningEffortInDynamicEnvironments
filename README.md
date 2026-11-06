@@ -130,6 +130,10 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
+| `decision_model_experiments/models.py` | Local LLM calls for the decision-model experiment (`call_reasoning_model` and `call_instant_model` via Ollama; same frozen `qwen3:4b-q4_K_M` tag; actor thinking off by default); `tests/test_decision_models.py` |
+| `decision_model_experiments/observer_agent.py` | Reasoning-only Freeway observer (`think(observation) -> str`); keeps `GenerationResult` for logging; `tests/test_observer_agent.py` |
+| `decision_model_experiments/actor_agent.py` | Decision-model actor (`act(context) -> U/D/S`); strict parse with fallback `S`; does not know `context_mode`; `tests/test_actor_agent.py` |
+| `decision_model_experiments/experiment_runner.py` | Discrete Freeway episode runner: CLI, token-reveal loop (`observation` / `reasoning` / `both`; live observation in `both`), and one JSON log per episode; `python -m decision_model_experiments.experiment_runner --help`; `tests/test_experiment_runner.py` |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
 | `docs/freeway_diagnosis.md` | Earlier local audit; referenced ignored logs are not all published |
@@ -152,11 +156,37 @@ Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deplo
 
 ## How to Navigate this Repo
 
-| Path | Purpose and check |
-|---|---|
-| `experiment_manifest.py` | Proposed offline explicit-config validator; `python experiment_manifest.py MANIFEST.json [COMPARISON.json ...]` |
-| `test_experiment_manifest.py` | Synthetic validation/failure checks; `python -m unittest test_experiment_manifest -v` |
-| [Run-manifest interface](docs/weekend/run-manifest.md) | Required inputs, comparison rules, limits and verification commands; no approved scientific configuration |
+`freeway_scenarios.py` saves 500 Freeway situations in one local JSON file.
+Each has an ID, category, restorable state, and answers checked in the simulator.
+Use the existing project environment:
+
+```sh
+python freeway_scenarios.py generate
+python freeway_scenarios.py summary
+python freeway_scenarios.py run --id 42
+python freeway_scenarios.py run --category must_retreat
+python freeway_scenarios.py run --all
+```
+
+`run` replays situations and checks their answers; it does not run an LLM.
+Use `--file PATH` for another file. The default is `data/freeway_scenarios.json`,
+which is ignored by Git. Existing files are never overwritten.
+Tests: `python -m unittest test_freeway_scenarios -v`.
+
+Categories are safe advance, waiting helps, must retreat, and other dangerous
+advances. Waiting and retreat cases are counted first. The 500 contain 161, 161,
+160, and 18 respectively and cover every player position 0–8. Answers prefer
+a faster goal arrival, or greatest safe final progress within ten ticks; all
+tied first moves are kept. Safety requires following a safe continuation.
+
+The collection tests whether exploring reachable states improves coverage over
+random play. It uses the installed simulator and local CPU only, with no model
+calls or paid APIs, and stops after generation and replay checks. Acceptance:
+500 distinct physical situations, all player positions covered, and successful
+state and answer replay. These are related checkpoints from five development
+starts, not independent games or held-out tests. An early pilot also stepped
+selectors 5–7, so those cannot be called untouched test starts. Implementation
+and verification were AI-assisted; human review is required.
 
 ## Each Code File
 
@@ -191,3 +221,11 @@ Use [Related Works](docs/related-works.md) to track each paper by **paper name, 
 | Pranav Panicker | Project member |
 | Shohini Rhea Sarkar | Project member |
 | Akash Wudali | Project member |
+
+## Offline experiment manifest
+
+| Path | Purpose and check |
+|---|---|
+| `experiment_manifest.py` | Proposed offline explicit-config validator; `python experiment_manifest.py MANIFEST.json [COMPARISON.json ...]` |
+| `test_experiment_manifest.py` | Synthetic validation/failure checks; `python -m unittest test_experiment_manifest -v` |
+| [Run-manifest interface](docs/weekend/run-manifest.md) | Required inputs, comparison rules, limits and verification commands; no approved scientific configuration |
