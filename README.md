@@ -221,3 +221,11 @@ Use [Related Works](docs/related-works.md) to track each paper by **paper name, 
 | Pranav Panicker | Project member |
 | Shohini Rhea Sarkar | Project member |
 | Akash Wudali | Project member |
+
+## Offline experiment manifest
+
+| Path | Purpose and check |
+|---|---|
+| `experiment_manifest.py` | Proposed offline explicit-config validator; `python experiment_manifest.py MANIFEST.json [COMPARISON.json ...]` |
+| `test_experiment_manifest.py` | Synthetic validation/failure checks; `python -m unittest test_experiment_manifest -v` |
+| [Run-manifest interface](docs/weekend/run-manifest.md) | Required inputs, comparison rules, limits and verification commands; no approved scientific configuration |
