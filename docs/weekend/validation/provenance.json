@@ -1,0 +1,93 @@
+{
+  "executable": "/usr/bin/python3.13",
+  "python": "3.13.5 (main, Aug 10 2026, 12:06:59) [GCC 14.2.0]",
+  "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+  "machine": "x86_64",
+  "modules": {
+    "numpy": {
+      "version": "2.2.6",
+      "file": "/opt/data/research/freeway/site-packages/numpy/__init__.py"
+    },
+    "pygame": {
+      "version": "2.6.1",
+      "file": "/opt/data/research/freeway/site-packages/pygame/__init__.py"
+    },
+    "realtimegym": {
+      "version": "0.1.0",
+      "file": "/opt/data/research/freeway/source/src/realtimegym/__init__.py"
+    }
+  },
+  "source_revision": "3d5b3ef37dafee25ca2e8d2e8d71f5fe842eda7b",
+  "scope": "Unmodified headless Freeway import path and supplied basic_usage example only; not a full package installation",
+  "checks": {
+    "source_files": {
+      "SOURCE.json": {
+        "expected": "d44480af35e0432bc60bc01587ed7878002b3bf3bd1f77ac044e0f4aabbdfa37",
+        "actual": "d44480af35e0432bc60bc01587ed7878002b3bf3bd1f77ac044e0f4aabbdfa37",
+        "matches": true
+      },
+      "LICENSE": {
+        "expected": "2958a1d597c20791ca50edc414d7f31aeaf0f00969d2372cf51511d6d4eb29bd",
+        "actual": "2958a1d597c20791ca50edc414d7f31aeaf0f00969d2372cf51511d6d4eb29bd",
+        "matches": true
+      },
+      "README.md": {
+        "expected": "f462b3ea369fae3135d9dc90a10b5b656ca87fe4a3129d5ae05928c713e90444",
+        "actual": "f462b3ea369fae3135d9dc90a10b5b656ca87fe4a3129d5ae05928c713e90444",
+        "matches": true
+      },
+      "pyproject.toml": {
+        "expected": "34479640882fc361eac69bdeb834c2ffa4ca0fe8185e4c57fbd2f58066162fa5",
+        "actual": "34479640882fc361eac69bdeb834c2ffa4ca0fe8185e4c57fbd2f58066162fa5",
+        "matches": true
+      },
+      "examples/basic_usage.py": {
+        "expected": "4fe8c031266e0fbbe72a5857afb4c246709f7e386614e244347c3d7d1441c96a",
+        "actual": "4fe8c031266e0fbbe72a5857afb4c246709f7e386614e244347c3d7d1441c96a",
+        "matches": true
+      },
+      "src/realtimegym/__init__.py": {
+        "expected": "1c6c6638129b196ea20fb63b41666e3b16c03833e9df37131d6177670caac6ed",
+        "actual": "1c6c6638129b196ea20fb63b41666e3b16c03833e9df37131d6177670caac6ed",
+        "matches": true
+      },
+      "src/realtimegym/environments/__init__.py": {
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      "src/realtimegym/environments/base.py": {
+        "expected": "139b45e947c99bf9d4b929712167590d28338f8405e2669bfe4fa4b46628650a",
+        "actual": "139b45e947c99bf9d4b929712167590d28338f8405e2669bfe4fa4b46628650a",
+        "matches": true
+      },
+      "src/realtimegym/environments/freeway.py": {
+        "expected": "9a0a252cb1db44830920268f745f0dadd3a00e4ccbe6863b36a38daa3126367a",
+        "actual": "9a0a252cb1db44830920268f745f0dadd3a00e4ccbe6863b36a38daa3126367a",
+        "matches": true
+      },
+      "src/realtimegym/environments/render/freeway_render.py": {
+        "expected": "a7bc924fbf14d9631af2735d3a38088922953786e45274e88208373153978430",
+        "actual": "a7bc924fbf14d9631af2735d3a38088922953786e45274e88208373153978430",
+        "matches": true
+      }
+    },
+    "wheels": {
+      "numpy-2.2.6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+        "expected": "1bc23a79bfabc5d056d106f9befb8d50c31ced2fbc70eedb8155aec74a45798f",
+        "actual": "1bc23a79bfabc5d056d106f9befb8d50c31ced2fbc70eedb8155aec74a45798f",
+        "matches": true
+      },
+      "pygame-2.6.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl": {
+        "expected": "ef07c0103d79492c21fced9ad68c11c32efa6801ca1920ebfd0f15fb46c78b1c",
+        "actual": "ef07c0103d79492c21fced9ad68c11c32efa6801ca1920ebfd0f15fb46c78b1c",
+        "matches": true
+      }
+    }
+  },
+  "external_manifest_matches_historical": true,
+  "evidence_checksums_verified": 33,
+  "sample_sha256": "15322560bbc35c29735c3d2b4a0cdd385dbb127c18d57b9c550f654a94089382",
+  "repeat_sha256": "15322560bbc35c29735c3d2b4a0cdd385dbb127c18d57b9c550f654a94089382",
+  "independent_sample_equal": true
+}

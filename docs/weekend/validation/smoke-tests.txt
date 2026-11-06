@@ -1,0 +1,12 @@
+test_independent_cli_repeatability_and_record_oracles (test_freeway_smoke.RealEnvironmentTests.test_independent_cli_repeatability_and_record_oracles) ... ok
+test_action_exhaustion (test_freeway_smoke.SettingsTests.test_action_exhaustion) ... ok
+test_bad_mapped_seed_rejected (test_freeway_smoke.SettingsTests.test_bad_mapped_seed_rejected) ... ok
+test_invalid_settings (test_freeway_smoke.SettingsTests.test_invalid_settings) ... ok
+test_source_mismatch_rejected (test_freeway_smoke.SettingsTests.test_source_mismatch_rejected) ... ok
+test_supported_settings (test_freeway_smoke.SettingsTests.test_supported_settings) ... ok
+test_tuple_order_collision_and_terminal (test_freeway_smoke.SettingsTests.test_tuple_order_collision_and_terminal) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.676s
+
+OK
