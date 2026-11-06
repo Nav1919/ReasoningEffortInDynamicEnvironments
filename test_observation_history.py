@@ -8,6 +8,7 @@ Simulator tests fail rather than skip if the provisioned runtime is unavailable.
 """
 
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -140,13 +141,15 @@ class SimulatorTests(unittest.TestCase):
             output = Path(directory) / "pairs.jsonl"
             command = [sys.executable, str(ROOT / "observation_history.py"),
                        "--delay", "2", "--output", str(output)]
-            result = subprocess.run(command, check=True, capture_output=True,
+            env = os.environ.copy()
+            env.pop("PYGAME_HIDE_SUPPORT_PROMPT", None)
+            result = subprocess.run(command, check=True, capture_output=True, env=env,
                                     text=True, timeout=30)
             self.assertEqual(json.loads(result.stdout)["pairs"], 9)
             original = output.read_bytes()
             records = [json.loads(line) for line in original.splitlines()]
             self.assertEqual(records, demonstrate(2))
-            retry = subprocess.run(command, capture_output=True, text=True, timeout=30)
+            retry = subprocess.run(command, capture_output=True, env=env, text=True, timeout=30)
             self.assertNotEqual(retry.returncode, 0)
             self.assertEqual(output.read_bytes(), original)
 

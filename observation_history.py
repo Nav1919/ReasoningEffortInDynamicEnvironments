@@ -13,6 +13,7 @@ limits: docs/weekend/observation-history.md. No model calls.
 import argparse
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 
 
@@ -111,6 +112,8 @@ def main():
     parser.add_argument("--max-steps", type=int, default=10)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
+    # Keep the simulator's Pygame startup banner out of the JSON response.
+    os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
     try:
         records = demonstrate(args.delay, actions=args.actions, max_steps=args.max_steps)
     except (ValueError, LookupError) as error:
