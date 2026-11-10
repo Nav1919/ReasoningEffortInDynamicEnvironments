@@ -156,6 +156,10 @@ Agent contributors should follow [AGENTS.md](AGENTS.md). Orchestration and deplo
 
 ## How to Navigate this Repo
 
+Stage A development inputs: `freeway_observations.py` previews six equivalent
+observable representations; `test_freeway_observations.py` checks them. See
+[Stage A protocol and commands](docs/stage-a.md). No model experiment has run.
+
 `freeway_scenarios.py` saves 500 Freeway situations in one local JSON file.
 Each has an ID, category, restorable state, and answers checked in the simulator.
 Use the existing project environment:
