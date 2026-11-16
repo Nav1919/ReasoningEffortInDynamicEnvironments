@@ -4,6 +4,10 @@
 import copy
 import json
 import unittest
+import io
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 
 from stage_a import FORMATS, distance, make_prompt, make_questions, read_scene, render_scene, score_answer
 
@@ -128,6 +132,110 @@ class QuestionTests(unittest.TestCase):
         self.assertTrue(result['safe'])
         self.assertFalse(result['correct'])
         self.assertFalse(score_answer(question, '{"action": ""}')['valid'])
+
+
+class RunnerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from freeway_scenarios import generate
+        cls.temp = tempfile.TemporaryDirectory()
+        cls.root = Path(cls.temp.name)
+        cls.bank = cls.root/'bank.json'
+        generate(cls.bank, count=4, selectors=1, ticks=3, horizon=3)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+    def prepare_run(self, folder, count=4):
+        from run_stage_a import ROOT, prepare
+        config = json.loads((ROOT/'configs/stage_a.json').read_text())
+        config.update(bank=str(self.bank), count=count, sampling_seeds=[0], bootstrap_samples=100)
+        path = folder.parent/(folder.name + '-config.json')
+        path.write_text(json.dumps(config))
+        return prepare(path, folder)
+
+    def test_selection_questions_and_resume(self):
+        from run_stage_a import execute, read_rows
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)/'run'
+            other = Path(tmp)/'other'
+            manifest = self.prepare_run(folder)
+            self.prepare_run(other)
+            self.assertEqual(manifest['request_count'], 144)
+            self.assertEqual((folder/'requests.jsonl').read_bytes(), (other/'requests.jsonl').read_bytes())
+            requests = read_rows(folder/'requests.jsonl')
+            self.assertNotIn('answer', requests[0])
+            self.assertNotIn('safe_actions', requests[0])
+            self.assertEqual(execute(folder, 'perfect', 7)['added'], 7)
+            self.assertEqual(execute(folder, 'perfect')['added'], 137)
+            self.assertEqual(execute(folder, 'perfect')['added'], 0)
+            rows = read_rows(folder/'responses.jsonl')
+            self.assertEqual(sum(r['status'] == 'completed' for r in rows), 144)
+            self.assertTrue(all(r['synthetic'] for r in rows))
+
+    def test_changed_files_and_no_real_requests(self):
+        from run_stage_a import execute, load_run
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)/'run'
+            self.prepare_run(folder)
+            with patch('run_stage_a.urlopen', side_effect=AssertionError('Network forbidden')):
+                with self.assertRaises(ValueError):
+                    execute(folder)
+                execute(folder, 'mixed', 10)
+            with (folder/'questions.jsonl').open('a') as stream:
+                stream.write('{}\n')
+            with self.assertRaises(ValueError):
+                load_run(folder)
+
+    def test_import_checks_and_failure_retention(self):
+        from run_stage_a import execute, import_responses, read_rows
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)/'run'
+            self.prepare_run(folder)
+            execute(folder, 'mixed')
+            rows = read_rows(folder/'responses.jsonl')
+            self.assertTrue(any(r['status'] == 'error' for r in rows))
+            self.assertEqual(execute(folder, 'mixed')['added'], 0)
+            imported = Path(tmp)/'answers.jsonl'
+            imported.write_text(json.dumps(dict(request_id='unknown', attempt_id='a', status='completed', text='{}', synthetic=True))+'\n')
+            with self.assertRaises(ValueError):
+                import_responses(folder, imported)
+            self.assertEqual(rows, read_rows(folder/'responses.jsonl'))
+
+    def test_backend_translation(self):
+        from run_stage_a import ask_model
+        model = dict(backend='ollama', name='example', endpoint='http://localhost:11434',
+                     temperature=0.6, max_output_tokens=100, context_tokens=4096, thinking=False)
+        request = dict(model=model, prompt='Question', seed=4)
+        raw = dict(message={'content': '{"count": 2}'}, prompt_eval_count=10, eval_count=4, done_reason='stop')
+        with patch('run_stage_a.urlopen', return_value=io.BytesIO(json.dumps(raw).encode())) as send:
+            response = ask_model(request, 3)
+            payload = json.loads(send.call_args.args[0].data)
+            self.assertEqual(payload['options']['seed'], 4)
+            self.assertFalse(payload['think'])
+            self.assertEqual(response['output_tokens'], 4)
+        model.update(backend='openai_compatible', endpoint='http://localhost:8000/v1')
+        with self.assertRaises(ValueError):
+            ask_model(request, 3)
+        del model['thinking']
+        raw = {'choices': [{'message': {'content': '{}'}, 'finish_reason': 'length'}]}
+        with patch('run_stage_a.urlopen', return_value=io.BytesIO(json.dumps(raw).encode())) as send:
+            response = ask_model(request, 3)
+            self.assertEqual(send.call_args.args[0].full_url, 'http://localhost:8000/v1/chat/completions')
+            self.assertIsNone(response['input_tokens'])
+            self.assertEqual(response['finish_reason'], 'length')
+
+    def test_timeout_and_unsupported_backend(self):
+        from run_stage_a import ask_model
+        model = dict(backend='ollama', name='example', endpoint='http://localhost:11434',
+                     temperature=0, max_output_tokens=10, context_tokens=4096)
+        with patch('run_stage_a.urlopen', side_effect=TimeoutError):
+            with self.assertRaises(TimeoutError):
+                ask_model(dict(model=model, prompt='q', seed=0), 1)
+        model['backend'] = 'unknown'
+        with self.assertRaises(ValueError):
+            ask_model(dict(model=model, prompt='q', seed=0), 1)
 
 
 if __name__ == '__main__':
