@@ -256,3 +256,71 @@ Use [Related Works](docs/related-works.md) to track each paper by **paper name, 
 | Pranav Panicker | Project member |
 | Shohini Rhea Sarkar | Project member |
 | Akash Wudali | Project member |
+
+### Prepare Stage A without running models
+
+`run_stage_a.py` prepares requests, previews scenes, imports responses, and checks
+record keeping with fake answers. `configs/stage_a.json` is the shared recipe;
+its default model is synthetic and real execution is disabled. From the repo:
+
+```sh
+python run_stage_a.py prepare --config configs/stage_a.json --output logs/stage_a_demo
+python run_stage_a.py preview --run logs/stage_a_demo --id 42
+python run_stage_a.py simulate --run logs/stage_a_demo --profile mixed --limit 100
+python run_stage_a.py simulate --run logs/stage_a_demo --profile mixed
+```
+
+Preview defaults to the first selected scene if `--id` is omitted. A particular
+ID may not be selected. Use a new output folder for another preparation. The
+manifest saves settings, selected IDs/counts, seeds, bank and source hashes, and
+expected requests. Preparation checks selected snapshots against observations;
+it reuses the bank's action labels rather than rerunning exhaustive searches.
+It does not establish untouched-start validation. Five perception questions plus
+one action check, six formats and five sampling seeds produce 36,000 requests
+for 200 scenes and one model. No model requests are made by preparation.
+
+For another family, replace the synthetic entry in a copy of the config. Each
+model condition needs a unique `id`, `family`, `backend`, `name`, exact `identity`
+(weight digest or pinned revision), `quantization`, `temperature`,
+`max_output_tokens`, `context_tokens`, `endpoint`, and `seed_supported: true`
+after verifying that server supports seeds. Optional `size_billions` is used for
+size plots. Ollama accepts `thinking: false` or `true`; generic compatible servers
+do not have a portable thinking switch, so this field is rejected there. Use
+separate condition IDs for thinking/quantization settings. No model family is
+silently substituted. Example model entry:
+
+```json
+{"id":"my_model_off","family":"qwen","size_billions":4,
+ "backend":"ollama","name":"EXACT_LOCAL_TAG","identity":"VERIFIED_DIGEST",
+ "quantization":"EXACT_QUANTIZATION","temperature":0.6,"thinking":false,
+ "max_output_tokens":192,"context_tokens":16384,"seed_supported":true,
+ "endpoint":"http://localhost:11434"}
+```
+
+For `openai_compatible`, use an endpoint ending in `/v1` and optionally an
+`api_key_env` naming an environment variable. Never put a credential in the
+config. Backend translation is mock-tested only; actual model identity, seed
+behavior, chat-template behavior and tokenizer limits still need real integration
+checks. The runner uses a deliberately conservative character-based context
+precheck; it does not measure exact tokens or silently truncate inputs.
+
+Real execution is a separate `run` command and requires a prepared config with
+an explicitly approved `real_execution` budget: `max_requests`, `max_seconds`,
+and `max_output_tokens`. Output-token allowances are reserved at each attempt's
+configured maximum, including failed/interrupted attempts. This implementation
+work allows zero real calls, downloads, or paid APIs. Server-side cancellation
+and billing after a timeout cannot be guaranteed by a client timeout.
+
+Responses are append-only JSONL: request ID, attempt ID, status, text, synthetic
+flag, raw backend response, finish reason, usage when reported, and latency.
+Secrets from request headers are not saved. Failed and interrupted attempts stay
+visible and are not retried automatically; resume processes unattempted requests.
+Completed answers, even malformed ones, are not replaced. To use another runner,
+`python run_stage_a.py import --run FOLDER --file RESPONSES.jsonl` validates and
+imports the same response format. Keep synthetic and real results in separate
+prepared folders. Request files contain no answer keys; `questions.jsonl` is the
+private answer key and must not be sent to models.
+
+Validation: `python -m unittest test_stage_a -v` passed 18 tests, including mocked
+backend translation, offline preparation, interruption/resume, failed-response
+retention, and changed-file rejection. Real backend checks were not run.
