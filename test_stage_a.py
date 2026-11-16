@@ -77,7 +77,7 @@ class RepresentationTests(unittest.TestCase):
 
     def test_grid_marks_overlap_and_empty_lanes(self):
         text = render_scene(read_scene(example_observation()), 'grid')
-        self.assertIn('3 | . | . | . | . | C00,P | . | . | . | .', text)
+        self.assertIn('3 | . | . | . | . | X | . | . | . | .', text)
         self.assertIn('9 | . | . | . | . | . | . | . | . | .', text)
 
     def test_unknown_format(self):

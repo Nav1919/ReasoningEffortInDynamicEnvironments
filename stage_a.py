@@ -46,6 +46,7 @@ def render_scene(scene, format_name):
     if format_name == 'json':
         return json.dumps(scene, sort_keys=True)
     text = f"Turn {scene['turn']}.\n" + render(scene, names[format_name])
+    text += 'Grid symbols: P=player, C=traffic, X=player and traffic, .=empty.\n' if format_name == 'grid' else ''
     text += 'Whole-cell occupancy (x units, including off-board cells):\n'
     for car in scene['cars']:
         text += f"{car['id']}: occupied_x={car['occupied_x']}\n"
