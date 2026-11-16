@@ -89,10 +89,15 @@ def render(view, representation):
             for column in range(9):
                 x = 12 * (column-4)
                 labels = [c['id'] for c in cars if c['lane'] == lane
-                          and footprint(c)[0] <= x <= footprint(c)[1]]
-                if lane == view['player']['lane'] and column == 4:
-                    labels.append('P')
-                cells.append(','.join(labels) or '.')
+                          and (x in c['occupied_x'] if 'occupied_x' in c
+                               else footprint(c)[0] <= x <= footprint(c)[1])]
+                player_here = lane == view['player']['lane'] and column == 4
+                if 'turn' in view:
+                    cells.append('X' if labels and player_here else 'P' if player_here else 'C' if labels else '.')
+                else:
+                    if player_here:
+                        labels.append('P')
+                    cells.append(','.join(labels) or '.')
             lines.append(f'{lane} | ' + ' | '.join(cells))
         lines.append('Exact object metadata (including off-board heads):')
         lines.extend(' '.join(f'{key}={c[key]}' for key in FIELDS) for c in cars)
