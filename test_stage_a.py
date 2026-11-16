@@ -226,6 +226,36 @@ class RunnerTests(unittest.TestCase):
             self.assertIsNone(response['input_tokens'])
             self.assertEqual(response['finish_reason'], 'length')
 
+    def test_bad_backend_response_is_kept(self):
+        from run_stage_a import ask_model
+        model = dict(backend='openai_compatible', name='example', endpoint='http://localhost:8000/v1',
+                     temperature=0, max_output_tokens=10, context_tokens=4096)
+        raw = {'choices': []}
+        with patch('run_stage_a.urlopen', return_value=io.BytesIO(json.dumps(raw).encode())):
+            result = ask_model(dict(model=model, prompt='q', seed=0), 1)
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['raw'], raw)
+
+    def test_real_budget_with_mocked_model(self):
+        from run_stage_a import ROOT, execute, prepare, read_rows
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)/'run'
+            config = json.loads((ROOT/'configs/stage_a.json').read_text())
+            config.update(bank=str(self.bank), count=1, sampling_seeds=[0])
+            config['models'] = [dict(id='mocked', family='test', backend='ollama', name='test',
+                                     identity='test-digest', quantization='test', temperature=0,
+                                     max_output_tokens=10, context_tokens=16000, seed_supported=True,
+                                     endpoint='http://localhost:11434')]
+            config['real_execution'] = dict(approved=True, max_requests=1, max_seconds=10, max_output_tokens=10)
+            path = Path(tmp)/'config.json'
+            path.write_text(json.dumps(config))
+            prepare(path, folder)
+            with patch('run_stage_a.ask_model', return_value=dict(status='completed', text='{}', error=None)) as model:
+                self.assertEqual(execute(folder)['added'], 1)
+                self.assertEqual(execute(folder)['added'], 0)
+                self.assertEqual(model.call_count, 1)
+            self.assertEqual(len(read_rows(folder/'responses.jsonl')), 2)
+
     def test_timeout_and_unsupported_backend(self):
         from run_stage_a import ask_model
         model = dict(backend='ollama', name='example', endpoint='http://localhost:11434',

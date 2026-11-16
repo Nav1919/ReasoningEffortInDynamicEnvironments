@@ -181,6 +181,8 @@ def validate_response(row, request_ids):
 def import_responses(folder, path):
     _, requests = load_run(folder)
     ids = {r['request_id'] for r in requests}
+    if not path.is_file():
+        raise FileNotFoundError(path)
     rows = read_rows(path)
     existing = read_rows(folder/'responses.jsonl')
     attempts = {r['attempt_id'] for r in existing if r.get('status') != 'started'}
@@ -261,15 +263,20 @@ def ask_model(request, timeout):
         raise ValueError('This backend cannot make real requests')
     with urlopen(Request(endpoint + path, data=json.dumps(payload).encode(), headers=headers), timeout=timeout) as response:
         raw = json.load(response)
-    if model['backend'] == 'ollama':
-        text = raw['message']['content']
-        usage = dict(input_tokens=raw.get('prompt_eval_count'), output_tokens=raw.get('eval_count'))
-        finish = raw.get('done_reason')
-    else:
-        text = raw['choices'][0]['message']['content']
-        usage = dict(input_tokens=raw.get('usage', {}).get('prompt_tokens'),
-                     output_tokens=raw.get('usage', {}).get('completion_tokens'))
-        finish = raw['choices'][0].get('finish_reason')
+    try:
+        if model['backend'] == 'ollama':
+            text = raw['message']['content']
+            usage = dict(input_tokens=raw.get('prompt_eval_count'), output_tokens=raw.get('eval_count'))
+            finish = raw.get('done_reason')
+        else:
+            text = raw['choices'][0]['message']['content']
+            usage = dict(input_tokens=raw.get('usage', {}).get('prompt_tokens'),
+                         output_tokens=raw.get('usage', {}).get('completion_tokens'))
+            finish = raw['choices'][0].get('finish_reason')
+    except (KeyError, IndexError, TypeError):
+        return dict(status='error', text=None, raw=raw, error='Unexpected response shape')
+    if not isinstance(text, str):
+        return dict(status='error', text=None, raw=raw, error='Missing final answer text')
     return dict(status='completed', text=text, raw=raw, finish_reason=finish, error=None, **usage)
 
 
@@ -302,7 +309,8 @@ def execute(folder, profile=None, limit=None):
         by_attempt.setdefault(row['attempt_id'], []).append(row)
     reserved_tokens = sum(request_by_id[rows[0]['request_id']]['model'].get('max_output_tokens', 0)
                           for rows in by_attempt.values())
-    elapsed_before = sum(next((r.get('elapsed_seconds', 120) for r in rows if r['status'] != 'started'), 120)
+    elapsed_before = sum(next((r.get('elapsed_seconds') if r.get('elapsed_seconds') is not None else 120
+                              for r in rows if r['status'] != 'started'), 120)
                          for rows in by_attempt.values())
     started, added = time.monotonic(), 0
     stop_reason = 'complete'

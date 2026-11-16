@@ -321,6 +321,6 @@ imports the same response format. Keep synthetic and real results in separate
 prepared folders. Request files contain no answer keys; `questions.jsonl` is the
 private answer key and must not be sent to models.
 
-Validation: `python -m unittest test_stage_a -v` passed 16 tests, including mocked
+Validation: `python -m unittest test_stage_a -v` passed 18 tests, including mocked
 backend translation, offline preparation, interruption/resume, failed-response
 retention, and changed-file rejection. Real backend checks were not run.
