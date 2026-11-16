@@ -192,6 +192,37 @@ starts, not independent games or held-out tests. An early pilot also stepped
 selectors 5–7, so those cannot be called untouched test starts. Implementation
 and verification were AI-assisted; human review is required.
 
+### Stage A: reading the same scene in different ways
+
+`stage_a.py` builds on `freeway_observations.py` to turn the public Freeway observation into a grid, coordinates,
+prose, a full car lane table, relative positions, or JSON. It also makes five
+perception questions and checks answers. `test_stage_a.py` covers scene geometry,
+representations, questions, and scoring: `python -m unittest test_stage_a -v`.
+
+The working hypothesis is that structured descriptions help smaller models read
+traffic, with a smaller advantage at larger sizes. This is experiment setup;
+no models were run and no best representation has been selected. All formats
+retain every car, reported head position, nominal speed, direction, length, and
+whole-cell occupancy. The table supplies distances directly; this tests spatial
+preprocessing as well as presentation. The grid includes an exact car legend,
+and JSON is a normalized observation, not the original unmodified game response.
+
+Positions use the simulator's scaled units (12 per cell). A lane step counts as
+12 distance units; distance is Manhattan distance to the nearest occupied car
+cell, including off-board cells. Nearby means distance <=24. Head positions can
+include slow-car phase; whole-cell occupancy follows the simulator's collision
+geometry. Nearest answers retain ties, and counting counts distinct cars.
+
+Dependencies are the existing Freeway environment and situation bank. Acceptance
+requires matching geometry, identical questions across formats, no answer leakage,
+and correct scoring on hand-checked examples. The allowance is local CPU tests
+only, zero model calls/downloads or paid APIs; stop after setup and offline checks.
+The existing bank contains related development states, not held-out games.
+
+Validation: 11 Stage A tests passed, including geometry checks over 60 simulator
+observations from five development starts. Agent assistance was used; human
+review is required. This records implementation checks, not model performance.
+
 ## Each Code File
 
 Every new code file must:

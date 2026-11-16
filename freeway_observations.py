@@ -89,7 +89,8 @@ def render(view, representation):
             for column in range(9):
                 x = 12 * (column-4)
                 labels = [c['id'] for c in cars if c['lane'] == lane
-                          and footprint(c)[0] <= x <= footprint(c)[1]]
+                          and (x in c['occupied_x'] if 'occupied_x' in c
+                               else footprint(c)[0] <= x <= footprint(c)[1])]
                 if lane == view['player']['lane'] and column == 4:
                     labels.append('P')
                 cells.append(','.join(labels) or '.')
