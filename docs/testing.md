@@ -6,6 +6,17 @@ First follow the installation steps in the README. Then run:
 python -m unittest discover -v
 ```
 
+Also run the separate offline suite under `tests/`, including the Freeway
+smoke suite:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Root-level discovery does not recurse into the non-package `tests/` folder,
+so both commands are needed. The Freeway smoke suite requires the
+[pinned headless runtime](freeway-setup.md).
+
 The saved-Freeway checks run without Ollama or model downloads. They check
 the game rules, action parsing, timing calculations, and all 15 saved game replays.
 They also rebuild the saved tables in a temporary folder and check every published
