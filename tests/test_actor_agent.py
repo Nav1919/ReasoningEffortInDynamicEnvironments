@@ -30,6 +30,8 @@ class ActorPromptTests(unittest.TestCase):
         self.assertIn(SAMPLE_CONTEXT, prompt)
         self.assertIn("Choose one action", prompt)
         self.assertIn("Return only U, D, or S", prompt)
+        self.assertIn("Your objective is to CROSS", prompt)
+        self.assertIn("Make upward progress when possible", prompt)
         self.assertNotIn("context_mode", prompt)
         self.assertNotIn("Write reasoning only", prompt)
         self.assertNotIn("do not choose an action letter", prompt)

@@ -17,12 +17,24 @@ from decision_model_experiments.models import parse_action
 FALLBACK_ACTION = "S"
 
 
+PROGRESS_OBJECTIVE = (
+    "Your objective is to CROSS, not to survive at the starting line. "
+    "Staying forever loses at turn 100. Make upward progress when possible; "
+    "use S or D when traffic makes that useful. S is not automatically safe "
+    "in a traffic lane. Choose for the next action opportunity despite "
+    "uncertainty; do not wait forever for a perfectly certain crossing.\n"
+)
+
+
 def build_actor_prompt(context):
     # Ask for a single executable letter. Do not mention context_mode; the
     # runner already chose what to put in `context`. Omit wall-clock tick
     # language because this experiment is discrete token-reveal, not latency.
+    # The progress prefix is the same crossing guidance as run_model_freeway.py
+    # `--prompt progress`: the original wording prefers S at y=0.
     return (
-        "Play Freeway. Choose one action: U (up), D (down), or S (stay). "
+        PROGRESS_OBJECTIVE
+        + "Play Freeway. Choose one action: U (up), D (down), or S (stay). "
         "Reach y=9 from y=0 while avoiding cars in lanes y=1 through y=8. "
         "U increases player y by 1; D decreases it by 1; S leaves it unchanged. "
         "The player stays at x=0. player_states is player y. "

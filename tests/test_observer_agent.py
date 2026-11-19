@@ -11,6 +11,7 @@ from decision_model_experiments.models import (
 from decision_model_experiments.observer_agent import (
     ObserverAgent,
     build_observer_prompt,
+    reasoning_trace,
 )
 
 
@@ -33,6 +34,8 @@ class ObserverPromptTests(unittest.TestCase):
         self.assertIn('"player_states": 0', prompt)
         self.assertIn("do not choose an action letter", prompt)
         self.assertIn("Write reasoning only", prompt)
+        self.assertIn("The objective is to CROSS", prompt)
+        self.assertIn("Reason about making upward", prompt)
         self.assertNotIn("Choose one action", prompt)
         self.assertNotIn("Return only U, D, or S", prompt)
 
@@ -64,17 +67,32 @@ class ObserverThinkTests(unittest.TestCase):
         observer = _observer(fake_post, max_tokens=10)
         text = observer.think(SAMPLE_OBSERVATION)
         payload = captured["payload"]
-        self.assertEqual(text, "lane 1 is clear")
+        self.assertEqual(text, "scan cars\nlane 1 is clear")
         self.assertEqual(captured["endpoint"], "chat")
         self.assertEqual(payload["think"], True)
         self.assertEqual(payload["options"]["num_predict"], 10)
         self.assertIn("BOARD_MARKER", payload["messages"][0]["content"])
         self.assertIn("do not choose an action letter", payload["messages"][0]["content"])
         self.assertIsInstance(observer.last_result, GenerationResult)
-        self.assertEqual(observer.last_result.content, text)
+        self.assertEqual(observer.last_result.content, "lane 1 is clear")
         self.assertEqual(observer.last_result.thinking, "scan cars")
         self.assertEqual(observer.last_result.output_tokens, 4)
         self.assertIsNone(observer.last_result.error)
+
+    def test_truncated_thinking_is_used_when_content_is_empty(self):
+        # Live Qwen with think on and a tiny x writes only into thinking.
+        def fake_post(endpoint, payload):
+            return {
+                "message": {"content": "", "thinking": "Okay, let's try to figure out"},
+                "done_reason": "length",
+                "eval_count": 10,
+            }
+
+        observer = _observer(fake_post, max_tokens=10)
+        text = observer.think(SAMPLE_OBSERVATION)
+        self.assertEqual(text, "Okay, let's try to figure out")
+        self.assertEqual(observer.last_result.content, "")
+        self.assertEqual(observer.last_result.done_reason, "length")
 
     def test_think_returns_action_letters_as_plain_text(self):
         # The observer must not treat U as an environment action.

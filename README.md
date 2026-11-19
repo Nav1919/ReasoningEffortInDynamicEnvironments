@@ -133,7 +133,7 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `decision_model_experiments/models.py` | Local LLM calls for the decision-model experiment (`call_reasoning_model` and `call_instant_model` via Ollama; same frozen `qwen3:4b-q4_K_M` tag; actor thinking off by default); `tests/test_decision_models.py` |
 | `decision_model_experiments/observer_agent.py` | Reasoning-only Freeway observer (`think(observation) -> str`); keeps `GenerationResult` for logging; `tests/test_observer_agent.py` |
 | `decision_model_experiments/actor_agent.py` | Decision-model actor (`act(context) -> U/D/S`); strict parse with fallback `S`; does not know `context_mode`; `tests/test_actor_agent.py` |
-| `decision_model_experiments/experiment_runner.py` | Discrete Freeway episode runner: CLI, token-reveal loop (`observation` / `reasoning` / `both`; live observation in `both`), and one JSON log per episode; `python -m decision_model_experiments.experiment_runner --help`; `tests/test_experiment_runner.py` |
+| `decision_model_experiments/experiment_runner.py` | Discrete Freeway episode runner: CLI, sprite-free pygame window (default on; `--no-render` to disable), token-reveal loop (`observation` / `reasoning` / `both`; live observation in `both`), and one JSON log per episode; `python -m decision_model_experiments.experiment_runner --help`; `tests/test_experiment_runner.py` |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
 | `docs/freeway_diagnosis.md` | Earlier local audit; referenced ignored logs are not all published |

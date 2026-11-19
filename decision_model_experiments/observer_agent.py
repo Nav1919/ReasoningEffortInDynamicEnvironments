@@ -5,7 +5,9 @@ choose or execute U / D / S. The runner later reveals this text to the actor.
 
 Import: `from decision_model_experiments.observer_agent import ObserverAgent`
 Call: `ObserverAgent(client, max_tokens=x).think(observation) -> str`
-`observer.last_result` is the full `GenerationResult` for tokens, latency, and failures.
+`think` returns thinking plus content so a Qwen think-on call with empty
+`content` still yields a revealable trace. `observer.last_result` is the
+full `GenerationResult` for tokens, latency, and failures.
 
 Tests: `python -m unittest tests.test_observer_agent -v`
 """
@@ -31,6 +33,11 @@ def build_observer_prompt(observation, board="full"):
             snapshot.pop("state_string", None)
         observation_text = json.dumps(snapshot, default=convert_scalar)
     return (
+        "The objective is to CROSS, not to survive at the starting line. "
+        "Staying forever loses at turn 100. Reason about making upward "
+        "progress when possible; S or D can be useful when traffic requires "
+        "it. S is not automatically safe in a traffic lane. Waiting forever "
+        "for a perfectly certain crossing fails. "
         "Play Freeway. Reason about the current situation only; "
         "do not choose an action letter. "
         "Reach y=9 from y=0 while avoiding cars in lanes y=1 through y=8. "
@@ -51,6 +58,23 @@ def build_observer_prompt(observation, board="full"):
     )
 
 
+def reasoning_trace(result):
+    """Text the runner reveals. Qwen with thinking on writes into `thinking`
+    first; `content` is often empty when `x` is small or the budget hits
+    `length`. Use both, thinking first, and do not drop a truncated trace.
+    """
+    if result is None:
+        return ""
+    parts = []
+    thinking = (result.thinking or "").strip()
+    content = (result.content or "").strip()
+    if thinking:
+        parts.append(thinking)
+    if content:
+        parts.append(content)
+    return "\n".join(parts)
+
+
 class ObserverAgent:
     """Generate a reasoning trace from one Freeway observation."""
 
@@ -62,10 +86,10 @@ class ObserverAgent:
         self.last_result = None
 
     def think(self, observation) -> str:
-        """Ask the reasoning model for a trace. Return the reply text only."""
+        """Ask the reasoning model for a trace. Return thinking and/or content."""
         prompt = build_observer_prompt(observation, board=self.board)
         self.last_result = self.client.call_reasoning_model(
             prompt, max_tokens=self.max_tokens, think=self.thinking,
         )
         # Keep last_result for logging. Do not parse U/D/S from this text.
-        return self.last_result.content
+        return reasoning_trace(self.last_result)
