@@ -129,6 +129,8 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `freeway_study.py` | Situation generation, one-call smoke, study orchestration and summaries; `test_freeway_study.py` |
 | `replay_freeway.py` | Offline saved-action verification; `test_reproducibility.py` |
 | `test_reproducibility.py` | All 15 episode replays and relocated summary regeneration |
+| `observation_history.py` | Standalone exact-turn current/older snapshots; bounded no-model demo; [usage and checks](docs/weekend/observation-history.md) |
+| `test_observation_history.py` | Snapshot isolation, failure, episode/terminal and real simulator tests: `python -m unittest test_observation_history -v` |
 | `test_evidence_integrity.py` | Saved-file checksums and rejection of damaged replay records |
 | `decision_model_experiments/models.py` | Local LLM calls for the decision-model experiment (`call_reasoning_model` and `call_instant_model` via Ollama; same frozen `qwen3:4b-q4_K_M` tag; actor thinking off by default); `tests/test_decision_models.py` |
 | `decision_model_experiments/observer_agent.py` | Reasoning-only Freeway observer (`think(observation) -> str`); keeps `GenerationResult` for logging; `tests/test_observer_agent.py` |
