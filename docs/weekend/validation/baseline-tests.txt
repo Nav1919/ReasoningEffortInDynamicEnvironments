@@ -1,0 +1,19 @@
+test_every_published_file_matches_its_checksum (test_evidence_integrity.EvidenceIntegrityTests.test_every_published_file_matches_its_checksum) ... ok
+test_replay_rejects_changed_start_and_transition_fields (test_evidence_integrity.EvidenceIntegrityTests.test_replay_rejects_changed_start_and_transition_fields) ... ok
+test_replay_rejects_summary_counts_that_disagree_with_actions (test_evidence_integrity.EvidenceIntegrityTests.test_replay_rejects_summary_counts_that_disagree_with_actions) ... ok
+test_action_copies_are_independent_including_collision_resets (test_freeway_study.StudyTests.test_action_copies_are_independent_including_collision_resets) ... ok
+test_goal_and_timeout_with_empty_observation (test_freeway_study.StudyTests.test_goal_and_timeout_with_empty_observation) ... ok
+test_latency_convention_and_matched_order (test_freeway_study.StudyTests.test_latency_convention_and_matched_order) ... ok
+test_replay_and_noncosmetic_distinctness (test_freeway_study.StudyTests.test_replay_and_noncosmetic_distinctness) ... ok
+test_shared_sampling_seed_changes_only_sampling (test_freeway_study.StudyTests.test_shared_sampling_seed_changes_only_sampling) ... ok
+test_summary_separates_inference_wait_and_tick_alignment (test_freeway_study.StudyTests.test_summary_separates_inference_wait_and_tick_alignment) ... ok
+test_board_removal_is_independent_and_does_not_mutate_snapshot (test_model_freeway.ModelBoundaryTests.test_board_removal_is_independent_and_does_not_mutate_snapshot) ... ok
+test_only_complete_single_actions_are_accepted (test_model_freeway.ModelBoundaryTests.test_only_complete_single_actions_are_accepted) ... ok
+test_all_saved_live_episodes_replay (test_reproducibility.ReproducibilityTests.test_all_saved_live_episodes_replay) ... ok
+test_incomplete_runs_are_retained_and_reported (test_reproducibility.ReproducibilityTests.test_incomplete_runs_are_retained_and_reported) ... ok
+test_summary_regenerates_after_relocation (test_reproducibility.ReproducibilityTests.test_summary_regenerates_after_relocation) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 4.219s
+
+OK

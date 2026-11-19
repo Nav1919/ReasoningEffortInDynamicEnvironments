@@ -39,6 +39,8 @@ python -m unittest test_model_freeway.py test_freeway_study.py test_reproducibil
 Run every offline check with `python -m unittest discover -v`.
 The tests replay all 15 saved games, rebuild the result tables, check saved-file
 checksums, and reject damaged game records. See [testing](docs/testing.md).
+See the [October 30 merged-baseline reproducibility gate](docs/weekend/reproducibility.md)
+for selected-source Linux validation and its limits.
 
 The baseline always moves up and prints a timestamped `logs/scripted_freeway_*.json`
 path. On the pinned setup, seed 0 times out after 100 turns with 25 collisions.
