@@ -36,8 +36,22 @@ class ObserverPromptTests(unittest.TestCase):
         self.assertIn("Write reasoning only", prompt)
         self.assertIn("The objective is to CROSS", prompt)
         self.assertIn("Reason about making upward", prompt)
+        self.assertIn("cut off when the token budget runs out", prompt)
+        self.assertIn("read from the first word", prompt)
+        self.assertIn("one moment of a changing environment", prompt)
+        self.assertIn("the environment is still changing", prompt)
+        self.assertIn("moving up, staying, or moving down", prompt)
+        self.assertIn("first line is y=9", prompt)
+        self.assertIn("last line is y=0", prompt)
+        self.assertIn("Start with that next step", prompt)
+        self.assertNotIn("The token budget is", prompt)
         self.assertNotIn("Choose one action", prompt)
         self.assertNotIn("Return only U, D, or S", prompt)
+
+    def test_prompt_states_the_token_budget_when_given(self):
+        prompt = build_observer_prompt(SAMPLE_OBSERVATION, max_tokens=32)
+        self.assertIn("The token budget is 32 tokens.", prompt)
+        self.assertIn("The first sentence must say whether moving up", prompt)
 
     def test_structured_board_drops_the_text_drawing_only(self):
         saved = copy.deepcopy(SAMPLE_OBSERVATION)
@@ -73,6 +87,8 @@ class ObserverThinkTests(unittest.TestCase):
         self.assertEqual(payload["options"]["num_predict"], 10)
         self.assertIn("BOARD_MARKER", payload["messages"][0]["content"])
         self.assertIn("do not choose an action letter", payload["messages"][0]["content"])
+        self.assertIn("The token budget is 10 tokens.", payload["messages"][0]["content"])
+        self.assertIn("read from the first word", payload["messages"][0]["content"])
         self.assertIsInstance(observer.last_result, GenerationResult)
         self.assertEqual(observer.last_result.content, "lane 1 is clear")
         self.assertEqual(observer.last_result.thinking, "scan cars")
