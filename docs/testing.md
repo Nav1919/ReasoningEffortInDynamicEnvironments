@@ -34,3 +34,16 @@ python -m unittest tests.test_decision_models tests.test_observer_agent tests.te
 For example, changing a saved collision from true to false must be detected.
 These checks confirm that the saved results can be checked. They do not show that
 the AI plays well. The same command runs automatically for each pull request.
+
+
+Decision-model trace replay adds offline integrity and GUI checks:
+
+```sh
+python -m unittest discover -s tests -p 'test_decision_replay.py' -v
+```
+
+`tests/test_decision_replay.py` uses real seeded simulator transitions and explicitly
+synthetic model text. It rejects damaged evidence, retains partial/failed episodes,
+checks exact saved prompts and revealed reasoning, and exercises pygame input and
+rendering through dummy SDL drivers. See the [replay guide](../decision_model_experiments/replay.md)
+and [actual validation record](../decision_model_experiments/replay-handoff.md).
