@@ -17,6 +17,11 @@ Usage from the repository root (no Ollama in offline tests):
         --context-mode both --observer-tokens 10 --time-pressure 3 \\
         --log-path logs/both_episode.json
 
+The pygame Freeway window is on by default. Pass `--no-render` for a
+headless run (offline tests always stay headless). The installed
+RealtimeGym wheel has no sprite assets, so the window is drawn from
+`env.pos` / `env.cars` rather than `FreewayRender`.
+
 Inputs: CLI settings, a local Ollama model, and live Freeway observations.
 Output: one JSON file per episode (`logs/decision_model_*.json` by default).
 `--log-path` refuses to overwrite an existing file.
@@ -195,8 +200,133 @@ def unused_reasoning_from_trace(trace, revealed_token_count, method=TOKENIZATION
     return leftover_text, leftover_count
 
 
+FREEWAY_WINDOW_COLS = 9
+FREEWAY_WINDOW_ROWS = 10
+FREEWAY_WINDOW_CELL = 48
+
+
+def draw_freeway_surface(env, cell_size=FREEWAY_WINDOW_CELL, terminal_label=None):
+    """Draw Freeway; replay may supply a verified terminal outcome label."""
+    import pygame
+    if not pygame.get_init():
+        pygame.init()
+    width = FREEWAY_WINDOW_COLS * cell_size
+    height = FREEWAY_WINDOW_ROWS * cell_size
+    surface = pygame.Surface((width, height))
+    grass = (62, 140, 72)
+    road = (72, 72, 78)
+    lane_line = (230, 230, 230)
+    crossing = (210, 190, 60)
+    car_right = (200, 70, 60)
+    car_left = (70, 110, 200)
+    player = (250, 220, 70)
+    for row in range(FREEWAY_WINDOW_ROWS):
+        for col in range(FREEWAY_WINDOW_COLS):
+            rect = pygame.Rect(col * cell_size, row * cell_size, cell_size, cell_size)
+            if row in (0, FREEWAY_WINDOW_ROWS - 1):
+                surface.fill(grass, rect)
+            elif col == 4:
+                surface.fill(crossing, rect)
+            else:
+                surface.fill(road, rect)
+            if row not in (0, FREEWAY_WINDOW_ROWS - 1) and col < FREEWAY_WINDOW_COLS - 1:
+                pygame.draw.line(
+                    surface, lane_line,
+                    ((col + 1) * cell_size, row * cell_size),
+                    ((col + 1) * cell_size, (row + 1) * cell_size),
+                    1,
+                )
+    for car in getattr(env, "cars", []) or []:
+        if len(car) < 5:
+            continue
+        x, y, _timer, speed, length = car[:5]
+        if x is None or speed is None or y is None or length is None:
+            continue
+        going_right = speed > 0
+        car_y = int(y) * cell_size
+        if going_right:
+            car_x = (int(x) - int(length) + 1) * cell_size
+        else:
+            car_x = int(x) * cell_size
+        car_rect = pygame.Rect(car_x, car_y, int(length) * cell_size, cell_size)
+        pygame.draw.rect(surface, car_right if going_right else car_left, car_rect)
+        pygame.draw.rect(surface, (20, 20, 20), car_rect, 1)
+    pos = getattr(env, "pos", None)
+    if pos is not None:
+        center = (
+            4 * cell_size + cell_size // 2,
+            int(pos) * cell_size + cell_size // 2,
+        )
+        pygame.draw.circle(surface, player, center, max(cell_size // 3, 8))
+        pygame.draw.circle(surface, (20, 20, 20), center, max(cell_size // 3, 8), 2)
+    font = pygame.font.Font(None, 28)
+    turn = getattr(env, "game_turn", "?")
+    score = getattr(env, "reward", "")
+    info = font.render(f"Turn {turn}  Score {score}", True, (255, 255, 255))
+    background = info.get_rect()
+    background.topleft = (8, 8)
+    pygame.draw.rect(surface, (0, 0, 0), background.inflate(10, 6))
+    surface.blit(info, background)
+    if getattr(env, "terminal", False):
+        overlay = pygame.Surface((width, height))
+        overlay.set_alpha(120)
+        overlay.fill((0, 0, 0))
+        surface.blit(overlay, (0, 0))
+        end_text = terminal_label or (
+            "SUCCESS" if int(getattr(env, "game_turn", 100)) < 100 else "GAME OVER"
+        )
+        end = pygame.font.Font(None, 48).render(end_text, True, (255, 255, 255))
+        end_rect = end.get_rect(center=(width // 2, height // 2))
+        surface.blit(end, end_rect)
+    return surface
+
+
+class FreewayPygameWindow:
+    """Live pygame window for one episode. Missing sprites are not required."""
+
+    def __init__(self, title="Freeway"):
+        import pygame
+        pygame.init()
+        pygame.display.init()
+        self._pygame = pygame
+        self.screen = pygame.display.set_mode(
+            (FREEWAY_WINDOW_COLS * FREEWAY_WINDOW_CELL,
+             FREEWAY_WINDOW_ROWS * FREEWAY_WINDOW_CELL),
+        )
+        pygame.display.set_caption(title)
+        self.closed = False
+
+    def draw(self, env):
+        if self.closed:
+            return
+        pygame = self._pygame
+        try:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.close()
+                    return
+            self.screen.blit(draw_freeway_surface(env), (0, 0))
+            pygame.display.flip()
+        except pygame.error:
+            self.close()
+
+    def close(self):
+        if self.closed:
+            return
+        self.closed = True
+        try:
+            self._pygame.display.quit()
+        except Exception:
+            pass
+
+
+def _open_freeway_window(title="Freeway"):
+    return FreewayPygameWindow(title)
+
+
 def _make_freeway(seed):
-    # Created here, not injected, so production runs always use RealtimeGym.
+    # Always headless at the RealtimeGym layer. The installed package has no
+    # sprite assets, so FreewayRender raises FileNotFoundError on chicken.png.
     import realtimegym
     return realtimegym.make("Freeway-v0", seed=seed, render=False)
 
@@ -234,9 +364,10 @@ def build_arg_parser():
         "--observer-tokens",
         "-x",
         type=int,
-        default=32,
+        default=256,
         dest="observer_tokens",
-        help="Observer generation budget x (unused in observation).",
+        help="Observer generation budget x (unused in observation). "
+             "With thinking on, this budget is spent on thinking first.",
     )
     parser.add_argument("--seed", type=int, choices=range(8), default=0)
     parser.add_argument("--model", default=DEFAULT_REASONING_MODEL)
@@ -248,6 +379,12 @@ def build_arg_parser():
         help="Observer thinking only; unused in observation. Actor thinking stays off.",
     )
     parser.add_argument("--board", choices=["full", "structured"], default="full")
+    parser.add_argument(
+        "--render",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Show the pygame Freeway window while the episode runs.",
+    )
     parser.add_argument(
         "--log-path",
         default=None,
@@ -274,6 +411,7 @@ class ExperimentRunner:
         self.observer = observer
         self.actor = actor
         self.args = args
+        self._window = None
 
     def run(self):
         args = self.args
@@ -299,6 +437,7 @@ class ExperimentRunner:
                 "board": args.board,
                 "fallback_action": FALLBACK_ACTION,
                 "actor_thinking": False,
+                "render": bool(getattr(args, "render", False)),
                 "log_path": str(log_path),
             },
             "model_metadata": None,
@@ -312,6 +451,7 @@ class ExperimentRunner:
         env = None
         done = False
         collisions = 0
+        self._window = None
         unused_reasoning = ""
         unused_reasoning_tokens = 0
         x_label = f"x={args.observer_tokens}"
@@ -331,8 +471,13 @@ class ExperimentRunner:
             episode["warmup"] = self._warmup()
             env, real_seed, _ = _make_freeway(args.seed)
             episode["real_seed"] = int(real_seed)
+            if getattr(args, "render", False):
+                self._window = _open_freeway_window(
+                    f"Freeway | {args.context_mode}",
+                )
             observation, done = env.reset()
             episode["initial_observation"] = copy.deepcopy(observation)
+            self._draw_env(env)
             if args.context_mode == "observation":
                 collisions, done = self._run_observation_loop(
                     env, episode, observation, done,
@@ -366,6 +511,9 @@ class ExperimentRunner:
             }
             self._write_log(log_path, episode)
             print("\nEpisode log saved to:", log_path, flush=True)
+            if env is not None:
+                self._draw_env(env)
+            self._close_window()
         if env is not None:
             env.summary()
         return episode
@@ -532,7 +680,24 @@ class ExperimentRunner:
             f"Score {score} | Collision {collided}",
             flush=True,
         )
+        self._draw_env(env)
         return observation_after, bool(done), collisions
+
+    def _draw_env(self, env):
+        # Live window only. Closing it stops drawing; the episode still logs.
+        if self._window is None:
+            return
+        self._window.draw(env)
+        if getattr(self._window, "closed", False):
+            self._window = None
+
+    def _close_window(self):
+        if self._window is None:
+            return
+        close = getattr(self._window, "close", None)
+        if close is not None:
+            close()
+        self._window = None
 
 
 def main(argv=None):

@@ -69,6 +69,31 @@ is separate from the asynchronous model runner and saved pilot above; its short
 repeatability check does not establish model quality. Run the smoke tests explicitly:
 root-level unittest discovery does not recurse into this non-package `tests/` folder.
 
+## Replay decision-model traces
+
+Open a saved decision-model experiment in a step-by-step pygame dashboard:
+
+```sh
+python -m decision_model_experiments.replay logs/both_test.json
+```
+
+Replace the filename with your actual `experiment_runner` log. Use Left/Right
+for steps, B for the board before/after the action, and Space for playback.
+Scroll the tabs to inspect exact saved prompts, revealed/full observer reasoning,
+outputs, errors and observations. Replay verifies the saved Freeway transitions
+first and makes no model calls. Add `--verify-only` to check without a window.
+See [replay controls and verification limits](decision_model_experiments/replay.md).
+
+### How to Navigate this Repo
+
+- [Decision-model replay](decision_model_experiments/replay.py) loads and verifies
+  saved episodes; [pygame debugger](decision_model_experiments/replay_gui.py)
+  displays the existing Freeway board alongside the saved agent trace.
+- [Replay tests](tests/test_decision_replay.py) cover replay integrity, failed runs,
+  prompt fidelity, navigation and headless GUI rendering.
+- [Replay handoff](decision_model_experiments/replay-handoff.md) records the task
+  contract, actual checks, evidence and remaining review work.
+
 ## Smallest model check
 
 Install [Ollama](https://docs.ollama.com/quickstart), open its application (or use
@@ -133,7 +158,7 @@ separately from decision latency. A completed episode is not necessarily a cross
 | `decision_model_experiments/models.py` | Local LLM calls for the decision-model experiment (`call_reasoning_model` and `call_instant_model` via Ollama; same frozen `qwen3:4b-q4_K_M` tag; actor thinking off by default); `tests/test_decision_models.py` |
 | `decision_model_experiments/observer_agent.py` | Reasoning-only Freeway observer (`think(observation) -> str`); keeps `GenerationResult` for logging; `tests/test_observer_agent.py` |
 | `decision_model_experiments/actor_agent.py` | Decision-model actor (`act(context) -> U/D/S`); strict parse with fallback `S`; does not know `context_mode`; `tests/test_actor_agent.py` |
-| `decision_model_experiments/experiment_runner.py` | Discrete Freeway episode runner: CLI, token-reveal loop (`observation` / `reasoning` / `both`; live observation in `both`), and one JSON log per episode; `python -m decision_model_experiments.experiment_runner --help`; `tests/test_experiment_runner.py` |
+| `decision_model_experiments/experiment_runner.py` | Discrete Freeway episode runner: CLI, sprite-free pygame window (default on; `--no-render` to disable), token-reveal loop (`observation` / `reasoning` / `both`; live observation in `both`), and one JSON log per episode; `python -m decision_model_experiments.experiment_runner --help`; `tests/test_experiment_runner.py` |
 | `evidence/freeway_20261008/` | Compact published records, metadata, source snapshots and summaries; [inventory](evidence/freeway_20261008/README.md) |
 | `docs/freeway_timing_study.md` | Protocol, measured pilot findings and limitations |
 | `docs/freeway_diagnosis.md` | Earlier local audit; referenced ignored logs are not all published |

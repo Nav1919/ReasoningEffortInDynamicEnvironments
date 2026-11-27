@@ -13,6 +13,9 @@ from unittest.mock import patch
 from decision_model_experiments.actor_agent import ActorAgent
 from decision_model_experiments.experiment_runner import (
     CONTEXT_MODES,
+    FREEWAY_WINDOW_CELL,
+    FREEWAY_WINDOW_COLS,
+    FREEWAY_WINDOW_ROWS,
     OBSERVATION_FRESHNESS,
     OBSERVATION_LABEL,
     REVEALED_REASONING_LABEL,
@@ -20,6 +23,7 @@ from decision_model_experiments.experiment_runner import (
     ExperimentRunner,
     build_actor_context,
     count_reasoning_tokens,
+    draw_freeway_surface,
     join_reasoning_tokens,
     parse_args,
     reveal_prefix_lengths,
@@ -208,6 +212,7 @@ def _args(log_path, **overrides):
         model_seed=0,
         thinking="on",
         board="full",
+        render=False,
         log_path=log_path,
     )
     values.update(overrides)
@@ -303,7 +308,7 @@ EXPECTED_SETTINGS_KEYS = {
     "context_mode", "observation_freshness", "tokenization_method",
     "observer_tokens_unused", "time_pressure_unused", "thinking",
     "thinking_unused", "board", "fallback_action", "actor_thinking",
-    "log_path",
+    "render", "log_path",
 }
 EXPECTED_STEP_KEYS = {
     "turn", "revealed_token_count", "context_mode", "context", "action",
@@ -336,6 +341,11 @@ class ParseArgsTests(unittest.TestCase):
         self.assertEqual(args.time_pressure, 3)
         self.assertEqual(args.thinking, "on")
         self.assertEqual(args.model, "qwen3:4b-q4_K_M")
+        self.assertTrue(args.render)
+
+    def test_no_render_disables_the_pygame_window(self):
+        args = parse_args(["--context-mode", "observation", "--no-render"])
+        self.assertFalse(args.render)
 
 
 class ExperimentRunnerLoopTests(unittest.TestCase):
@@ -351,6 +361,10 @@ class ExperimentRunnerLoopTests(unittest.TestCase):
                 return {"model": "stub-qwen", "details": {}}
             return {"message": {"content": "S"}, "done_reason": "stop"}
 
+        def fake_open_window(title="Freeway"):
+            events.append(("window", title))
+            return None
+
         runner = ExperimentRunner(observer, actor, args)
         with patch(
             "decision_model_experiments.experiment_runner.post_json",
@@ -358,8 +372,12 @@ class ExperimentRunnerLoopTests(unittest.TestCase):
         ), patch(
             "decision_model_experiments.experiment_runner._make_freeway",
             return_value=(env, 1000, None),
+        ) as make_freeway, patch(
+            "decision_model_experiments.experiment_runner._open_freeway_window",
+            fake_open_window,
         ):
             episode = runner.run()
+            make_freeway.assert_called_with(args.seed)
         saved = json.loads(log_path.read_text())
         return episode, saved, events, log_path
 
@@ -372,6 +390,24 @@ class ExperimentRunnerLoopTests(unittest.TestCase):
         env = FakeEnv([LIVE_OBSERVATION], done_after=1, events=events)
         self._run(RaisingObserver(), RecordingActor(), env, context_mode="observation")
         self.assertEqual(events[:3], ["show", "chat", "reset"])
+
+    def test_render_true_opens_our_window_not_upstream_sprites(self):
+        env = FakeEnv([LIVE_OBSERVATION], done_after=1)
+        _, saved, events, _ = self._run(
+            RaisingObserver(), RecordingActor(), env,
+            context_mode="observation", render=True,
+        )
+        self.assertTrue(saved["settings"]["render"])
+        self.assertIn(("window", "Freeway | observation"), events)
+
+    def test_render_false_does_not_open_a_window(self):
+        env = FakeEnv([LIVE_OBSERVATION], done_after=1)
+        _, saved, events, _ = self._run(
+            RaisingObserver(), RecordingActor(), env,
+            context_mode="observation", render=False,
+        )
+        self.assertFalse(saved["settings"]["render"])
+        self.assertFalse(any(item[0] == "window" for item in events if isinstance(item, tuple)))
 
     def test_observation_never_calls_think_and_acts_once_per_state(self):
         observer = RaisingObserver()
@@ -653,6 +689,22 @@ class RealtimeGymSmokeTests(unittest.TestCase):
         self.assertIn("state", episode["initial_observation"])
         self.assertTrue(episode["steps"][-1]["done"])
         self.assertEqual(episode["summary"]["observer_call_count"], 0)
+
+    def test_sprite_free_surface_draws_a_realtimegym_state(self):
+        try:
+            import realtimegym
+        except ImportError as exc:
+            self.fail(f"RealtimeGym must be installed for this smoke test: {exc}")
+        env, _, _ = realtimegym.make("Freeway-v0", seed=0, render=False)
+        observation, done = env.reset()
+        self.assertFalse(done)
+        surface = draw_freeway_surface(env)
+        self.assertEqual(
+            surface.get_size(),
+            (FREEWAY_WINDOW_COLS * FREEWAY_WINDOW_CELL,
+             FREEWAY_WINDOW_ROWS * FREEWAY_WINDOW_CELL),
+        )
+        self.assertIn("state", observation)
 
 
 if __name__ == "__main__":
