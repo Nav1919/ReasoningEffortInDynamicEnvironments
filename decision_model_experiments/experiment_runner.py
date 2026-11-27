@@ -205,8 +205,8 @@ FREEWAY_WINDOW_ROWS = 10
 FREEWAY_WINDOW_CELL = 48
 
 
-def draw_freeway_surface(env, cell_size=FREEWAY_WINDOW_CELL):
-    """Draw the current Freeway grid without RealtimeGym sprite files."""
+def draw_freeway_surface(env, cell_size=FREEWAY_WINDOW_CELL, terminal_label=None):
+    """Draw Freeway; replay may supply a verified terminal outcome label."""
     import pygame
     if not pygame.get_init():
         pygame.init()
@@ -272,7 +272,9 @@ def draw_freeway_surface(env, cell_size=FREEWAY_WINDOW_CELL):
         overlay.set_alpha(120)
         overlay.fill((0, 0, 0))
         surface.blit(overlay, (0, 0))
-        end_text = "SUCCESS" if int(getattr(env, "game_turn", 100)) < 100 else "GAME OVER"
+        end_text = terminal_label or (
+            "SUCCESS" if int(getattr(env, "game_turn", 100)) < 100 else "GAME OVER"
+        )
         end = pygame.font.Font(None, 48).render(end_text, True, (255, 255, 255))
         end_rect = end.get_rect(center=(width // 2, height // 2))
         surface.blit(end, end_rect)

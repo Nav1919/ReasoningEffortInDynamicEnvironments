@@ -69,6 +69,31 @@ is separate from the asynchronous model runner and saved pilot above; its short
 repeatability check does not establish model quality. Run the smoke tests explicitly:
 root-level unittest discovery does not recurse into this non-package `tests/` folder.
 
+## Replay decision-model traces
+
+Open a saved decision-model experiment in a step-by-step pygame dashboard:
+
+```sh
+python -m decision_model_experiments.replay logs/both_test.json
+```
+
+Replace the filename with your actual `experiment_runner` log. Use Left/Right
+for steps, B for the board before/after the action, and Space for playback.
+Scroll the tabs to inspect exact saved prompts, revealed/full observer reasoning,
+outputs, errors and observations. Replay verifies the saved Freeway transitions
+first and makes no model calls. Add `--verify-only` to check without a window.
+See [replay controls and verification limits](decision_model_experiments/replay.md).
+
+### How to Navigate this Repo
+
+- [Decision-model replay](decision_model_experiments/replay.py) loads and verifies
+  saved episodes; [pygame debugger](decision_model_experiments/replay_gui.py)
+  displays the existing Freeway board alongside the saved agent trace.
+- [Replay tests](tests/test_decision_replay.py) cover replay integrity, failed runs,
+  prompt fidelity, navigation and headless GUI rendering.
+- [Replay handoff](decision_model_experiments/replay-handoff.md) records the task
+  contract, actual checks, evidence and remaining review work.
+
 ## Smallest model check
 
 Install [Ollama](https://docs.ollama.com/quickstart), open its application (or use
